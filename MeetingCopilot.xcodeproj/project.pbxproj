@@ -1,0 +1,583 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		ASSETS001 = {isa = PBXBuildFile; fileRef = ASSETSREF; };
+		AA0001 /* MeetingCopilotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0001 /* MeetingCopilotApp.swift */; };
+		AA0002 /* BuildFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0002 /* BuildFlags.swift */; };
+		AA0003 /* FeatureGates.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0003 /* FeatureGates.swift */; };
+		AA0004 /* DomainErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0004 /* DomainErrors.swift */; };
+		AA0005 /* Entities.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0005 /* Entities.swift */; };
+		AA0006 /* Migrations.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0006 /* Migrations.swift */; };
+		AA0007 /* AudioSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0007 /* AudioSession.swift */; };
+		AA0008 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0008 /* AudioRecorder.swift */; };
+		AA0009 /* WavFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0009 /* WavFileWriter.swift */; };
+		AA0010 /* LiveTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0010 /* LiveTranscriber.swift */; };
+		AA0011 /* TranscriptAssembler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0011 /* TranscriptAssembler.swift */; };
+		AA0012 /* LLMClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0012 /* LLMClient.swift */; };
+		AA0013 /* AppleIntelligenceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0013 /* AppleIntelligenceClient.swift */; };
+		AA0014 /* HeuristicSummarizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0014 /* HeuristicSummarizer.swift */; };
+		AA0015 /* PromptLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0015 /* PromptLibrary.swift */; };
+		AA0016 /* TaskCreator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0016 /* TaskCreator.swift */; };
+		AA0017 /* CalendarCreator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0017 /* CalendarCreator.swift */; };
+		AA0018 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0018 /* Store.swift */; };
+		AA0019 /* Repositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0019 /* Repositories.swift */; };
+		AA0020 /* Exporters.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0020 /* Exporters.swift */; };
+		AA0021 /* StartMeetingIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0021 /* StartMeetingIntent.swift */; };
+		AA0022 /* StopMeetingIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0022 /* StopMeetingIntent.swift */; };
+		AA0023 /* MarkDecisionIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0023 /* MarkDecisionIntent.swift */; };
+		AA0024 /* CreateNextStepsIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0024 /* CreateNextStepsIntent.swift */; };
+		AA0025 /* GenerateSummaryIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0025 /* GenerateSummaryIntent.swift */; };
+		AA0026 /* BackgroundTasks.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0026 /* BackgroundTasks.swift */; };
+		AA0027 /* MeetingVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0027 /* MeetingVM.swift */; };
+		AA0028 /* ReviewVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0028 /* ReviewVM.swift */; };
+		AA0029 /* DecisionChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0029 /* DecisionChip.swift */; };
+		AA0030 /* ActionItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0030 /* ActionItemRow.swift */; };
+		AA0031 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0031 /* RootView.swift */; };
+		AA0032 /* MeetingListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0032 /* MeetingListView.swift */; };
+		AA0033 /* CaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0033 /* CaptureView.swift */; };
+		AA0034 /* ReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0034 /* ReviewView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		ASSETSREF = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = MeetingCopilot/Assets.xcassets; sourceTree = "<group>"; };
+		APPID001 /* MeetingCopilot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeetingCopilot.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB0000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = MeetingCopilot/Info.plist; sourceTree = "<group>"; };
+		BB0001 /* MeetingCopilotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MeetingCopilotApp.swift; path = MeetingCopilot/MeetingCopilotApp.swift; sourceTree = "<group>"; };
+		BB0002 /* BuildFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BuildFlags.swift; path = MeetingCopilot/Config/BuildFlags.swift; sourceTree = "<group>"; };
+		BB0003 /* FeatureGates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeatureGates.swift; path = MeetingCopilot/Config/FeatureGates.swift; sourceTree = "<group>"; };
+		BB0004 /* DomainErrors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DomainErrors.swift; path = MeetingCopilot/CoreModels/DomainErrors.swift; sourceTree = "<group>"; };
+		BB0005 /* Entities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Entities.swift; path = MeetingCopilot/CoreModels/Entities.swift; sourceTree = "<group>"; };
+		BB0006 /* Migrations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Migrations.swift; path = MeetingCopilot/CoreModels/Migrations.swift; sourceTree = "<group>"; };
+		BB0007 /* AudioSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AudioSession.swift; path = MeetingCopilot/Audio/AudioSession.swift; sourceTree = "<group>"; };
+		BB0008 /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AudioRecorder.swift; path = MeetingCopilot/Audio/AudioRecorder.swift; sourceTree = "<group>"; };
+		BB0009 /* WavFileWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WavFileWriter.swift; path = MeetingCopilot/Audio/WavFileWriter.swift; sourceTree = "<group>"; };
+		BB0010 /* LiveTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LiveTranscriber.swift; path = MeetingCopilot/ASR/LiveTranscriber.swift; sourceTree = "<group>"; };
+		BB0011 /* TranscriptAssembler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TranscriptAssembler.swift; path = MeetingCopilot/ASR/TranscriptAssembler.swift; sourceTree = "<group>"; };
+		BB0012 /* LLMClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LLMClient.swift; path = MeetingCopilot/NLP/LLMClient.swift; sourceTree = "<group>"; };
+		BB0013 /* AppleIntelligenceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppleIntelligenceClient.swift; path = MeetingCopilot/NLP/AppleIntelligenceClient.swift; sourceTree = "<group>"; };
+		BB0014 /* HeuristicSummarizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HeuristicSummarizer.swift; path = MeetingCopilot/NLP/HeuristicSummarizer.swift; sourceTree = "<group>"; };
+		BB0015 /* PromptLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PromptLibrary.swift; path = MeetingCopilot/NLP/PromptLibrary.swift; sourceTree = "<group>"; };
+		BB0016 /* TaskCreator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TaskCreator.swift; path = MeetingCopilot/Actions/TaskCreator.swift; sourceTree = "<group>"; };
+		BB0017 /* CalendarCreator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CalendarCreator.swift; path = MeetingCopilot/Actions/CalendarCreator.swift; sourceTree = "<group>"; };
+		BB0018 /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Store.swift; path = MeetingCopilot/Persistence/Store.swift; sourceTree = "<group>"; };
+		BB0019 /* Repositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Repositories.swift; path = MeetingCopilot/Persistence/Repositories.swift; sourceTree = "<group>"; };
+		BB0020 /* Exporters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Exporters.swift; path = MeetingCopilot/Persistence/Exporters.swift; sourceTree = "<group>"; };
+		BB0021 /* StartMeetingIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = StartMeetingIntent.swift; path = MeetingCopilot/Intents/StartMeetingIntent.swift; sourceTree = "<group>"; };
+		BB0022 /* StopMeetingIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = StopMeetingIntent.swift; path = MeetingCopilot/Intents/StopMeetingIntent.swift; sourceTree = "<group>"; };
+		BB0023 /* MarkDecisionIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MarkDecisionIntent.swift; path = MeetingCopilot/Intents/MarkDecisionIntent.swift; sourceTree = "<group>"; };
+		BB0024 /* CreateNextStepsIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CreateNextStepsIntent.swift; path = MeetingCopilot/Intents/CreateNextStepsIntent.swift; sourceTree = "<group>"; };
+		BB0025 /* GenerateSummaryIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GenerateSummaryIntent.swift; path = MeetingCopilot/Intents/GenerateSummaryIntent.swift; sourceTree = "<group>"; };
+		BB0026 /* BackgroundTasks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BackgroundTasks.swift; path = MeetingCopilot/Background/BackgroundTasks.swift; sourceTree = "<group>"; };
+		BB0027 /* MeetingVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MeetingVM.swift; path = MeetingCopilot/UI/ViewModels/MeetingVM.swift; sourceTree = "<group>"; };
+		BB0028 /* ReviewVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ReviewVM.swift; path = MeetingCopilot/UI/ViewModels/ReviewVM.swift; sourceTree = "<group>"; };
+		BB0029 /* DecisionChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DecisionChip.swift; path = MeetingCopilot/UI/Components/DecisionChip.swift; sourceTree = "<group>"; };
+		BB0030 /* ActionItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ActionItemRow.swift; path = MeetingCopilot/UI/Components/ActionItemRow.swift; sourceTree = "<group>"; };
+		BB0031 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RootView.swift; path = MeetingCopilot/UI/RootView.swift; sourceTree = "<group>"; };
+		BB0032 /* MeetingListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MeetingListView.swift; path = MeetingCopilot/UI/MeetingListView.swift; sourceTree = "<group>"; };
+		BB0033 /* CaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CaptureView.swift; path = MeetingCopilot/UI/CaptureView.swift; sourceTree = "<group>"; };
+		BB0034 /* ReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ReviewView.swift; path = MeetingCopilot/UI/ReviewView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FRAMEWORKS001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ASSETS001 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		GROUP001 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				BB0002 /* BuildFlags.swift */,
+				BB0003 /* FeatureGates.swift */,
+			);
+			name = Config;
+			sourceTree = "<group>";
+		};
+		GROUP002 /* CoreModels */ = {
+			isa = PBXGroup;
+			children = (
+				BB0004 /* DomainErrors.swift */,
+				BB0005 /* Entities.swift */,
+				BB0006 /* Migrations.swift */,
+			);
+			name = CoreModels;
+			sourceTree = "<group>";
+		};
+		GROUP003 /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				BB0007 /* AudioSession.swift */,
+				BB0008 /* AudioRecorder.swift */,
+				BB0009 /* WavFileWriter.swift */,
+			);
+			name = Audio;
+			sourceTree = "<group>";
+		};
+		GROUP004 /* ASR */ = {
+			isa = PBXGroup;
+			children = (
+				BB0010 /* LiveTranscriber.swift */,
+				BB0011 /* TranscriptAssembler.swift */,
+			);
+			name = ASR;
+			sourceTree = "<group>";
+		};
+		GROUP005 /* NLP */ = {
+			isa = PBXGroup;
+			children = (
+				BB0012 /* LLMClient.swift */,
+				BB0013 /* AppleIntelligenceClient.swift */,
+				BB0014 /* HeuristicSummarizer.swift */,
+				BB0015 /* PromptLibrary.swift */,
+			);
+			name = NLP;
+			sourceTree = "<group>";
+		};
+		GROUP006 /* Actions */ = {
+			isa = PBXGroup;
+			children = (
+				BB0016 /* TaskCreator.swift */,
+				BB0017 /* CalendarCreator.swift */,
+			);
+			name = Actions;
+			sourceTree = "<group>";
+		};
+		GROUP007 /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				BB0018 /* Store.swift */,
+				BB0019 /* Repositories.swift */,
+				BB0020 /* Exporters.swift */,
+			);
+			name = Persistence;
+			sourceTree = "<group>";
+		};
+		GROUP008 /* Intents */ = {
+			isa = PBXGroup;
+			children = (
+				BB0021 /* StartMeetingIntent.swift */,
+				BB0022 /* StopMeetingIntent.swift */,
+				BB0023 /* MarkDecisionIntent.swift */,
+				BB0024 /* CreateNextStepsIntent.swift */,
+				BB0025 /* GenerateSummaryIntent.swift */,
+			);
+			name = Intents;
+			sourceTree = "<group>";
+		};
+		GROUP009 /* Background */ = {
+			isa = PBXGroup;
+			children = (
+				BB0026 /* BackgroundTasks.swift */,
+			);
+			name = Background;
+			sourceTree = "<group>";
+		};
+		GROUP010 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				BB0031 /* RootView.swift */,
+				BB0032 /* MeetingListView.swift */,
+				BB0033 /* CaptureView.swift */,
+				BB0034 /* ReviewView.swift */,
+				GROUP011 /* Components */,
+				GROUP012 /* ViewModels */,
+			);
+			name = UI;
+			sourceTree = "<group>";
+		};
+		GROUP011 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				BB0029 /* DecisionChip.swift */,
+				BB0030 /* ActionItemRow.swift */,
+			);
+			name = Components;
+			sourceTree = "<group>";
+		};
+		GROUP012 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				BB0027 /* MeetingVM.swift */,
+				BB0028 /* ReviewVM.swift */,
+			);
+			name = ViewModels;
+			sourceTree = "<group>";
+		};
+		PRODUCTS /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				APPID001 /* MeetingCopilot.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		ROOTGROUP /* MeetingCopilot */ = {
+			isa = PBXGroup;
+			children = (
+				BB0001 /* MeetingCopilotApp.swift */,
+				BB0000 /* Info.plist */,
+				ASSETSREF /* Assets.xcassets */,
+				GROUP001 /* Config */,
+				GROUP002 /* CoreModels */,
+				GROUP003 /* Audio */,
+				GROUP004 /* ASR */,
+				GROUP005 /* NLP */,
+				GROUP006 /* Actions */,
+				GROUP007 /* Persistence */,
+				GROUP008 /* Intents */,
+				GROUP009 /* Background */,
+				GROUP010 /* UI */,
+				PRODUCTS /* Products */,
+			);
+			name = MeetingCopilot;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		TARGET001 /* MeetingCopilot */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CONFIGLIST001 /* Build configuration list for PBXNativeTarget "MeetingCopilot" */;
+			buildPhases = (
+				SOURCES001 /* Sources */,
+				FRAMEWORKS001 /* Frameworks */,
+				RESOURCES001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MeetingCopilot;
+			productName = MeetingCopilot;
+			productReference = APPID001 /* MeetingCopilot.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		PROJECTOBJ /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					TARGET001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = CONFIGLIST002 /* Build configuration list for PBXProject "MeetingCopilot" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = ROOTGROUP /* MeetingCopilot */;
+			productRefGroup = PRODUCTS /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				TARGET001 /* MeetingCopilot */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		RESOURCES001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ASSETS001 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		SOURCES001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ASSETS001 /* Assets.xcassets in Resources */,
+				AA0001 /* MeetingCopilotApp.swift in Sources */,
+				AA0002 /* BuildFlags.swift in Sources */,
+				AA0003 /* FeatureGates.swift in Sources */,
+				AA0004 /* DomainErrors.swift in Sources */,
+				AA0005 /* Entities.swift in Sources */,
+				AA0006 /* Migrations.swift in Sources */,
+				AA0007 /* AudioSession.swift in Sources */,
+				AA0008 /* AudioRecorder.swift in Sources */,
+				AA0009 /* WavFileWriter.swift in Sources */,
+				AA0010 /* LiveTranscriber.swift in Sources */,
+				AA0011 /* TranscriptAssembler.swift in Sources */,
+				AA0012 /* LLMClient.swift in Sources */,
+				AA0013 /* AppleIntelligenceClient.swift in Sources */,
+				AA0014 /* HeuristicSummarizer.swift in Sources */,
+				AA0015 /* PromptLibrary.swift in Sources */,
+				AA0016 /* TaskCreator.swift in Sources */,
+				AA0017 /* CalendarCreator.swift in Sources */,
+				AA0018 /* Store.swift in Sources */,
+				AA0019 /* Repositories.swift in Sources */,
+				AA0020 /* Exporters.swift in Sources */,
+				AA0021 /* StartMeetingIntent.swift in Sources */,
+				AA0022 /* StopMeetingIntent.swift in Sources */,
+				AA0023 /* MarkDecisionIntent.swift in Sources */,
+				AA0024 /* CreateNextStepsIntent.swift in Sources */,
+				AA0025 /* GenerateSummaryIntent.swift in Sources */,
+				AA0026 /* BackgroundTasks.swift in Sources */,
+				AA0027 /* MeetingVM.swift in Sources */,
+				AA0028 /* ReviewVM.swift in Sources */,
+				AA0029 /* DecisionChip.swift in Sources */,
+				AA0030 /* ActionItemRow.swift in Sources */,
+				AA0031 /* RootView.swift in Sources */,
+				AA0032 /* MeetingListView.swift in Sources */,
+				AA0033 /* CaptureView.swift in Sources */,
+				AA0034 /* ReviewView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		BUILDCONFIG001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+					"BACKEND_AI=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG BACKEND_AI";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		BUILDCONFIG002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"BACKEND_AI=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 6.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		BUILDCONFIG003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APP_SHORTCUTS_ENABLE_FLEXIBLE_MATCHING = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7W75D5ZQ4C;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MeetingCopilot/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Meetman;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Meeting Copilot needs microphone access to record meetings. All audio stays on your device.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Meeting Copilot uses speech recognition to transcribe meetings on-device.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jeramo.meetingman;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BUILDCONFIG004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APP_SHORTCUTS_ENABLE_FLEXIBLE_MATCHING = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7W75D5ZQ4C;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MeetingCopilot/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Meetman;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Meeting Copilot needs microphone access to record meetings. All audio stays on your device.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Meeting Copilot uses speech recognition to transcribe meetings on-device.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jeramo.meetingman;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CONFIGLIST001 /* Build configuration list for PBXNativeTarget "MeetingCopilot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BUILDCONFIG003 /* Debug */,
+				BUILDCONFIG004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CONFIGLIST002 /* Build configuration list for PBXProject "MeetingCopilot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BUILDCONFIG001 /* Debug */,
+				BUILDCONFIG002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = PROJECTOBJ /* Project object */;
+}

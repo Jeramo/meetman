@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Meeting Copilot needs microphone access to record meetings. All audio stays on your device and is processed locally.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Meeting Copilot uses speech recognition to transcribe meetings. All transcription happens on-device.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>Meeting Copilot can create reminders from meeting action items to help you stay organized.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Meeting Copilot can create calendar events for follow-up meetings.</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<true/>
+	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.jeramo.meetingman.summarize</string>
+	</array>
+	<key>CFBundleIdentifier</key>
+	<string>com.jeramo.meetingman</string>
+	<key>CFBundleExecutable</key>
+	<string>MeetingCopilot</string>
+	<key>CFBundleName</key>
+	<string>MeetingCopilot</string>
+	<key>CFBundleDisplayName</key>
+	<string>Meeting Copilot</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string></string>
+		<key>UIImageName</key>
+		<string></string>
+	</dict>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>armv7</string>
+	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>MinimumOSVersion</key>
+	<string>26.0</string>
+</dict>
+</plist>
