@@ -14,6 +14,7 @@ struct ReviewView: View {
     @State private var selectedActionItems = Set<String>()
     @State private var showingShareSheet = false
     @State private var exportURL: URL?
+    @State private var showingAudioPlayback = false
 
     private let autoGenerateSummary: Bool
 
@@ -29,6 +30,11 @@ struct ReviewView: View {
                 // Header
                 if let meeting = viewModel.meeting {
                     meetingHeader(meeting)
+
+                    // Audio playback button
+                    if meeting.audioURL != nil {
+                        audioPlaybackButton
+                    }
                 }
 
                 // Summary section
@@ -49,6 +55,11 @@ struct ReviewView: View {
         }
         .navigationTitle("Review")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(isPresented: $showingAudioPlayback) {
+            if let meeting = viewModel.meeting {
+                AudioPlaybackView(meeting: meeting)
+            }
+        }
         .sheet(isPresented: $showingShareSheet) {
             if let url = exportURL {
                 ShareSheet(items: [url])
@@ -110,6 +121,32 @@ struct ReviewView: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(.secondarySystemBackground))
         )
+    }
+
+    private var audioPlaybackButton: some View {
+        Button {
+            showingAudioPlayback = true
+        } label: {
+            HStack {
+                Image(systemName: "play.circle.fill")
+                    .font(.title2)
+                Text("Listen with Transcript")
+                    .font(.headline)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.accentColor.opacity(0.1))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.accentColor, lineWidth: 1)
+            )
+        }
+        .foregroundStyle(.primary)
     }
 
     private var generateSummaryPrompt: some View {

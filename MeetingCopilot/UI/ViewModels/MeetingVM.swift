@@ -274,6 +274,7 @@ public final class MeetingVM {
 
     public var meeting: Meeting?
     public var isRecording = false
+    public var isPaused = false
     public var elapsedTime: TimeInterval = 0
     public var liveTranscript: String = ""
     public var errorMessage: String?
@@ -416,6 +417,85 @@ public final class MeetingVM {
         }
 
         logger.info("Meeting capture started in typing mode: \(meeting.id)")
+    }
+
+    /// Pause recording (keeps meeting active)
+    public func pauseCapture() {
+        guard isRecording && !isPaused else { return }
+
+        logger.info("Pausing meeting capture")
+
+        // Stop timer
+        timer?.invalidate()
+        timer = nil
+
+        // Stop audio and transcription (but keep meeting active)
+        let isTypingMode = (audioURL == nil)
+        if !isTypingMode {
+            do {
+                try audioRecorder.stopRecording()
+                logger.info("Audio recorder paused")
+            } catch {
+                logger.error("Failed to pause audio: \(error.localizedDescription)")
+            }
+
+            transcriber.stop()
+            logger.info("Transcriber paused")
+        }
+
+        isPaused = true
+        logger.info("Meeting paused")
+    }
+
+    /// Resume recording (continues same meeting)
+    public func resumeCapture() async throws {
+        guard isRecording && isPaused, let meeting = meeting else { return }
+
+        logger.info("Resuming meeting capture")
+
+        let isTypingMode = (audioURL == nil)
+
+        if !isTypingMode {
+            // Choose ASR locale using policy
+            let asrLocale = LanguagePolicy.initialASRLocale(userOverride: self.userOverrideLocale)
+
+            // Restart transcription
+            try transcriber.start(
+                locale: asrLocale,
+                meetingID: meeting.id
+            ) { [weak self] chunkData in
+                guard let self = self else { return }
+
+                // Convert DTO to model on MainActor
+                Task { @MainActor [weak self] in
+                    guard let self = self else { return }
+                    let chunk = chunkData.toModel()
+                    await self.handleTranscriptChunk(chunk)
+                }
+            }
+
+            // Restart audio recording
+            guard let audioURL = audioURL else {
+                throw AudioError.fileWriteFailed
+            }
+
+            try await audioRecorder.startRecording(to: audioURL) { [weak self] buffer in
+                guard let self = self else { return }
+                // Forward audio buffers to transcriber
+                self.transcriber.append(buffer: buffer)
+            }
+        }
+
+        // Restart timer
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            Task { @MainActor in
+                self.elapsedTime += 1
+            }
+        }
+
+        isPaused = false
+        logger.info("Meeting resumed")
     }
 
     /// Stop recording

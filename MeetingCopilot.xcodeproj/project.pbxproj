@@ -21,8 +21,9 @@
 		AA0011 /* TranscriptAssembler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0011 /* TranscriptAssembler.swift */; };
 		AA0012 /* LLMClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0012 /* LLMClient.swift */; };
 		AA0013 /* AppleIntelligenceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0013 /* AppleIntelligenceClient.swift */; };
-		AA0014 /* HeuristicSummarizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0014 /* HeuristicSummarizer.swift */; };
+		AA0014 /* LanguageModelHub.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0014 /* LanguageModelHub.swift */; };
 		AA0015 /* PromptLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0015 /* PromptLibrary.swift */; };
+		AA0015A /* DetectedLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0015A /* DetectedLanguage.swift */; };
 		AA0016 /* TaskCreator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0016 /* TaskCreator.swift */; };
 		AA0017 /* CalendarCreator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0017 /* CalendarCreator.swift */; };
 		AA0018 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0018 /* Store.swift */; };
@@ -42,6 +43,7 @@
 		AA0032 /* MeetingListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0032 /* MeetingListView.swift */; };
 		AA0033 /* CaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0033 /* CaptureView.swift */; };
 		AA0034 /* ReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0034 /* ReviewView.swift */; };
+		AA0035 /* AudioPlaybackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0035 /* AudioPlaybackView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -61,8 +63,9 @@
 		BB0011 /* TranscriptAssembler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TranscriptAssembler.swift; path = MeetingCopilot/ASR/TranscriptAssembler.swift; sourceTree = "<group>"; };
 		BB0012 /* LLMClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LLMClient.swift; path = MeetingCopilot/NLP/LLMClient.swift; sourceTree = "<group>"; };
 		BB0013 /* AppleIntelligenceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppleIntelligenceClient.swift; path = MeetingCopilot/NLP/AppleIntelligenceClient.swift; sourceTree = "<group>"; };
-		BB0014 /* HeuristicSummarizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HeuristicSummarizer.swift; path = MeetingCopilot/NLP/HeuristicSummarizer.swift; sourceTree = "<group>"; };
+		BB0014 /* LanguageModelHub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LanguageModelHub.swift; path = MeetingCopilot/NLP/LanguageModelHub.swift; sourceTree = "<group>"; };
 		BB0015 /* PromptLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PromptLibrary.swift; path = MeetingCopilot/NLP/PromptLibrary.swift; sourceTree = "<group>"; };
+		BB0015A /* DetectedLanguage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DetectedLanguage.swift; path = MeetingCopilot/NLP/DetectedLanguage.swift; sourceTree = "<group>"; };
 		BB0016 /* TaskCreator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TaskCreator.swift; path = MeetingCopilot/Actions/TaskCreator.swift; sourceTree = "<group>"; };
 		BB0017 /* CalendarCreator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CalendarCreator.swift; path = MeetingCopilot/Actions/CalendarCreator.swift; sourceTree = "<group>"; };
 		BB0018 /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Store.swift; path = MeetingCopilot/Persistence/Store.swift; sourceTree = "<group>"; };
@@ -82,6 +85,7 @@
 		BB0032 /* MeetingListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MeetingListView.swift; path = MeetingCopilot/UI/MeetingListView.swift; sourceTree = "<group>"; };
 		BB0033 /* CaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CaptureView.swift; path = MeetingCopilot/UI/CaptureView.swift; sourceTree = "<group>"; };
 		BB0034 /* ReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ReviewView.swift; path = MeetingCopilot/UI/ReviewView.swift; sourceTree = "<group>"; };
+		BB0035 /* AudioPlaybackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AudioPlaybackView.swift; path = MeetingCopilot/UI/AudioPlaybackView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -139,8 +143,9 @@
 			children = (
 				BB0012 /* LLMClient.swift */,
 				BB0013 /* AppleIntelligenceClient.swift */,
-				BB0014 /* HeuristicSummarizer.swift */,
+				BB0014 /* LanguageModelHub.swift */,
 				BB0015 /* PromptLibrary.swift */,
+				BB0015A /* DetectedLanguage.swift */,
 			);
 			name = NLP;
 			sourceTree = "<group>";
@@ -191,6 +196,7 @@
 				BB0032 /* MeetingListView.swift */,
 				BB0033 /* CaptureView.swift */,
 				BB0034 /* ReviewView.swift */,
+				BB0035 /* AudioPlaybackView.swift */,
 				GROUP011 /* Components */,
 				GROUP012 /* ViewModels */,
 			);
@@ -327,8 +333,9 @@
 				AA0011 /* TranscriptAssembler.swift in Sources */,
 				AA0012 /* LLMClient.swift in Sources */,
 				AA0013 /* AppleIntelligenceClient.swift in Sources */,
-				AA0014 /* HeuristicSummarizer.swift in Sources */,
+				AA0014 /* LanguageModelHub.swift in Sources */,
 				AA0015 /* PromptLibrary.swift in Sources */,
+				AA0015A /* DetectedLanguage.swift in Sources */,
 				AA0016 /* TaskCreator.swift in Sources */,
 				AA0017 /* CalendarCreator.swift in Sources */,
 				AA0018 /* Store.swift in Sources */,
@@ -348,6 +355,7 @@
 				AA0032 /* MeetingListView.swift in Sources */,
 				AA0033 /* CaptureView.swift in Sources */,
 				AA0034 /* ReviewView.swift in Sources */,
+				AA0035 /* AudioPlaybackView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -399,7 +407,6 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
-					"BACKEND_AI=1",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
@@ -414,7 +421,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG BACKEND_AI";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.0;
 			};
@@ -462,7 +469,6 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
-					"BACKEND_AI=1",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;

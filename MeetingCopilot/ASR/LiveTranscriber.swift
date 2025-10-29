@@ -274,6 +274,36 @@ public final class LiveTranscriber: @unchecked Sendable {
                 self.lastResultTime = currentTime
                 self.lastPartialResult = nil
             } else {
+                // Check if this is a NEW utterance (text got shorter or completely different)
+                // This happens when user pauses and ASR starts a fresh recognition
+                if let lastPartial = self.lastPartialResult,
+                   !lastPartial.text.isEmpty,
+                   text.count < Int(Double(lastPartial.text.count) * 0.8) { // Text shrank significantly
+
+                    // Finalize the previous partial as a complete chunk
+                    logger.info("Detected new utterance (text shrink: \(lastPartial.text.count) → \(text.count)), finalizing previous chunk")
+
+                    guard let meetingID = self.currentMeetingID, let callback = self.currentCallback else {
+                        return
+                    }
+
+                    let finalChunk = TranscriptChunkData(
+                        meetingID: meetingID,
+                        index: self.chunkIndex,
+                        text: lastPartial.text,
+                        startTime: self.lastResultTime,
+                        endTime: lastPartial.time,
+                        isFinal: true
+                    )
+
+                    logger.info("Auto-finalized chunk #\(self.chunkIndex): \(finalChunk.text)")
+                    callback(finalChunk)
+
+                    // Move to next chunk
+                    self.chunkIndex += 1
+                    self.lastResultTime = currentTime
+                }
+
                 // Track partial result
                 self.lastPartialResult = (text: text, time: currentTime)
 
@@ -428,6 +458,33 @@ public final class LiveTranscriber: @unchecked Sendable {
                 self.lastResultTime = currentTime
                 self.lastPartialResult = nil
             } else {
+                // Check if this is a NEW utterance (text got shorter or completely different)
+                if let lastPartial = self.lastPartialResult,
+                   !lastPartial.text.isEmpty,
+                   text.count < Int(Double(lastPartial.text.count) * 0.8) {
+
+                    logger.info("Detected new utterance (post-switch): \(lastPartial.text.count) → \(text.count), finalizing")
+
+                    guard let meetingID = self.currentMeetingID, let callback = self.currentCallback else {
+                        return
+                    }
+
+                    let finalChunk = TranscriptChunkData(
+                        meetingID: meetingID,
+                        index: self.chunkIndex,
+                        text: lastPartial.text,
+                        startTime: self.lastResultTime,
+                        endTime: lastPartial.time,
+                        isFinal: true
+                    )
+
+                    logger.info("Auto-finalized chunk #\(self.chunkIndex) (post-switch): \(finalChunk.text)")
+                    callback(finalChunk)
+
+                    self.chunkIndex += 1
+                    self.lastResultTime = currentTime
+                }
+
                 self.lastPartialResult = (text: text, time: currentTime)
 
                 guard let meetingID = self.currentMeetingID, let callback = self.currentCallback else {

@@ -294,6 +294,29 @@ struct CaptureView: View {
 
                 Spacer()
 
+                // Pause/Resume button
+                Button {
+                    if viewModel.isPaused {
+                        Task {
+                            do {
+                                try await viewModel.resumeCapture()
+                            } catch {
+                                viewModel.errorMessage = error.localizedDescription
+                            }
+                        }
+                    } else {
+                        viewModel.pauseCapture()
+                    }
+                } label: {
+                    Label(viewModel.isPaused ? "Resume" : "Pause", systemImage: viewModel.isPaused ? "play.fill" : "pause.fill")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .padding()
+                        .frame(minWidth: 100)
+                        .background(Color.orange)
+                        .clipShape(Capsule())
+                }
+
                 // Stop button
                 Button {
                     Task {
@@ -306,7 +329,7 @@ struct CaptureView: View {
                         .font(.headline)
                         .foregroundStyle(.white)
                         .padding()
-                        .frame(minWidth: 120)
+                        .frame(minWidth: 100)
                         .background(Color.red)
                         .clipShape(Capsule())
                 }
