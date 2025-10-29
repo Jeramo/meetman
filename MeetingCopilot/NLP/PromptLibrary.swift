@@ -111,4 +111,33 @@ enum PromptLibrary {
         For action items, use actual person names (e.g., "Alice — Send report by Friday", not "Owner — Verb — Object").
         """
     }
+
+    /// Text beautification/polishing prompt (guided generation)
+    /// Fixes punctuation, casing, splits run-ons, corrects spelling/spacing, contextually formats timestamps
+    @available(iOS 26, *)
+    static func beautifyPrompt(input: String, forceOutputLocale: String? = nil) -> String {
+        let langDirective = forceOutputLocale.map { "Write ALL output in \($0)." }
+            ?? "Detect the predominant language and write ALL output in that language."
+        return """
+        System: You rewrite user text to improve readability while preserving meaning. Return a Swift value of type `PolishedText`.
+
+        Rules:
+        - Add/repair punctuation and capitalization.
+        - Split run-on sentences when natural; avoid fragments unless clearly stylistic.
+        - Fix obvious spelling and spacing mistakes; DO NOT change semantics or factual content.
+        - Quote short titles with curly quotes if appropriate.
+        - Time formatting: when a numeric group clearly denotes a timestamp near words like "recording", "time", "at", "starts", "ends", "duration", convert MMSS or HMMSS to MM:SS (or HH:MM:SS). Otherwise treat numbers as IDs and DO NOT reformat them.
+        - Never invent content. If you're unsure whether a number is a timestamp or an ID, leave it unchanged.
+        - Content policy: do not refuse for profanity; paraphrase neutrally if needed. Do not censor names or dates.
+
+        Output:
+        - Return a `PolishedText` with `text` as the improved version.
+        - For EVERY change, add an `edits` item with exact `start`/`end` offsets in the ORIGINAL string, the `from` substring, the `to` substring, a `kind`, and a short `note`.
+
+        \(langDirective)
+
+        Input (verbatim):
+        \(input)
+        """
+    }
 }

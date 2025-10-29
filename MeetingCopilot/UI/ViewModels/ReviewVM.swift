@@ -25,11 +25,17 @@ public final class ReviewVM {
 
     public var isGeneratingSummary = false
     public var isCreatingReminders = false
+    public var isPolishingText = false
     public var errorMessage: String?
     public var successMessage: String?
 
     /// Chosen output locale for summary generation (e.g., "en-us" fallback for unsupported languages)
     public var chosenOutputLocale: String?
+
+    /// Polished transcript (if user requested beautification)
+    public var polishedTranscript: String?
+    /// Edit trail from polishing
+    public var transcriptEdits: [PolishedText.Edit] = []
 
     // MARK: - Dependencies
 
@@ -206,5 +212,107 @@ public final class ReviewVM {
     public func clearMessages() {
         errorMessage = nil
         successMessage = nil
+    }
+
+    // MARK: - Text Polishing
+
+    /// Beautify/polish the transcript text using Apple Intelligence
+    /// Fixes punctuation, capitalization, spelling, splits run-ons, and contextually formats timestamps
+    @available(iOS 26, *)
+    public func polishTranscript() async {
+        guard let meeting = meeting else { return }
+
+        isPolishingText = true
+        errorMessage = nil
+
+        do {
+            logger.info("Polishing transcript for meeting \(meeting.id)")
+
+            // Extract full transcript
+            let rawTranscript = meeting.transcriptChunks
+                .sorted { $0.index < $1.index }
+                .map(\.text)
+                .joined(separator: " ")
+
+            guard !rawTranscript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                errorMessage = "No transcript to polish"
+                isPolishingText = false
+                return
+            }
+
+            // Use TextPolisher API
+            let result = try await TextPolisher.beautify(
+                rawTranscript,
+                locale: chosenOutputLocale ?? "en-US",
+                timeout: 15
+            )
+
+            polishedTranscript = result.text
+            transcriptEdits = result.edits
+
+            successMessage = "Polished text with \(result.edits.count) improvements"
+            logger.info("Transcript polished: \(result.edits.count) edits")
+        } catch {
+            logger.error("Failed to polish transcript: \(error.localizedDescription)")
+            errorMessage = "Failed to polish text: \(error.localizedDescription)"
+        }
+
+        isPolishingText = false
+    }
+
+    /// Polish individual summary bullets, decisions, or action items
+    @available(iOS 26, *)
+    public func polishSummaryItems() async {
+        guard let currentSummary = summary else { return }
+
+        isPolishingText = true
+        errorMessage = nil
+
+        do {
+            logger.info("Polishing summary items")
+
+            // Polish bullets
+            var polishedBullets: [String] = []
+            for bullet in currentSummary.bullets {
+                let result = try await TextPolisher.beautify(bullet, locale: chosenOutputLocale)
+                polishedBullets.append(result.text)
+            }
+
+            // Polish decisions
+            var polishedDecisions: [String] = []
+            for decision in currentSummary.decisions {
+                let result = try await TextPolisher.beautify(decision, locale: chosenOutputLocale)
+                polishedDecisions.append(result.text)
+            }
+
+            // Polish action items
+            var polishedActions: [String] = []
+            for action in currentSummary.actionItems {
+                let result = try await TextPolisher.beautify(action, locale: chosenOutputLocale)
+                polishedActions.append(result.text)
+            }
+
+            // Update summary with polished versions
+            summary = SummaryResult(
+                bullets: polishedBullets,
+                decisions: polishedDecisions,
+                actionItems: polishedActions
+            )
+
+            // Save to meeting
+            if let meeting = meeting {
+                let encoder = JSONEncoder()
+                meeting.summaryJSON = String(data: try encoder.encode(summary), encoding: .utf8)
+                try meetingRepo.update(meeting)
+            }
+
+            successMessage = "Summary items polished"
+            logger.info("Summary items polished successfully")
+        } catch {
+            logger.error("Failed to polish summary items: \(error.localizedDescription)")
+            errorMessage = "Failed to polish summary: \(error.localizedDescription)"
+        }
+
+        isPolishingText = false
     }
 }

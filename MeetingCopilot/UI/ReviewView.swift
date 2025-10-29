@@ -37,6 +37,11 @@ struct ReviewView: View {
                     }
                 }
 
+                // Transcript polish section (optional, before summary)
+                if #available(iOS 26, *) {
+                    transcriptPolishSection
+                }
+
                 // Summary section
                 if viewModel.summary != nil {
                     summarySection
@@ -181,12 +186,91 @@ struct ReviewView: View {
         .padding(.vertical, 32)
     }
 
+    @available(iOS 26, *)
+    @ViewBuilder
+    private var transcriptPolishSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label("Text Polish", systemImage: "sparkles")
+                    .font(.headline)
+
+                Spacer()
+
+                Button {
+                    Task {
+                        if #available(iOS 26, *) {
+                            await viewModel.polishTranscript()
+                        }
+                    }
+                } label: {
+                    if viewModel.isPolishingText {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    } else {
+                        Label("Polish Transcript", systemImage: "wand.and.stars")
+                            .font(.caption)
+                    }
+                }
+                .buttonStyle(.bordered)
+                .disabled(viewModel.isPolishingText || viewModel.meeting?.transcriptChunks.isEmpty == true)
+            }
+
+            if let polishedText = viewModel.polishedTranscript {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Polished Transcript:")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Text(polishedText)
+                        .font(.body)
+                        .padding(8)
+                        .background(Color.green.opacity(0.05))
+                        .cornerRadius(6)
+
+                    if !viewModel.transcriptEdits.isEmpty {
+                        Text("\(viewModel.transcriptEdits.count) improvements made")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.secondarySystemBackground))
+        )
+    }
+
     @ViewBuilder
     private var summarySection: some View {
         if let summary = viewModel.summary, !summary.bullets.isEmpty {
             VStack(alignment: .leading, spacing: 12) {
-                Label("Summary", systemImage: "list.bullet")
-                    .font(.headline)
+                HStack {
+                    Label("Summary", systemImage: "list.bullet")
+                        .font(.headline)
+
+                    Spacer()
+
+                    if #available(iOS 26, *) {
+                        Button {
+                            Task {
+                                await viewModel.polishSummaryItems()
+                            }
+                        } label: {
+                            if viewModel.isPolishingText {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            } else {
+                                Label("Polish All", systemImage: "wand.and.stars")
+                                    .font(.caption)
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(viewModel.isPolishingText)
+                    }
+                }
 
                 ForEach(summary.bullets, id: \.self) { bullet in
                     HStack(alignment: .top, spacing: 8) {

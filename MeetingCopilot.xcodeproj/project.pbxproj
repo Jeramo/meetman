@@ -24,6 +24,8 @@
 		AA0014 /* LanguageModelHub.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0014 /* LanguageModelHub.swift */; };
 		AA0015 /* PromptLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0015 /* PromptLibrary.swift */; };
 		AA0015A /* DetectedLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0015A /* DetectedLanguage.swift */; };
+		AA0015B /* PolishedText.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0015B /* PolishedText.swift */; };
+		AA0015C /* TextPolisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0015C /* TextPolisher.swift */; };
 		AA0016 /* TaskCreator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0016 /* TaskCreator.swift */; };
 		AA0017 /* CalendarCreator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0017 /* CalendarCreator.swift */; };
 		AA0018 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0018 /* Store.swift */; };
@@ -66,6 +68,8 @@
 		BB0014 /* LanguageModelHub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LanguageModelHub.swift; path = MeetingCopilot/NLP/LanguageModelHub.swift; sourceTree = "<group>"; };
 		BB0015 /* PromptLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PromptLibrary.swift; path = MeetingCopilot/NLP/PromptLibrary.swift; sourceTree = "<group>"; };
 		BB0015A /* DetectedLanguage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DetectedLanguage.swift; path = MeetingCopilot/NLP/DetectedLanguage.swift; sourceTree = "<group>"; };
+		BB0015B /* PolishedText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PolishedText.swift; path = MeetingCopilot/NLP/PolishedText.swift; sourceTree = "<group>"; };
+		BB0015C /* TextPolisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TextPolisher.swift; path = MeetingCopilot/NLP/TextPolisher.swift; sourceTree = "<group>"; };
 		BB0016 /* TaskCreator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TaskCreator.swift; path = MeetingCopilot/Actions/TaskCreator.swift; sourceTree = "<group>"; };
 		BB0017 /* CalendarCreator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CalendarCreator.swift; path = MeetingCopilot/Actions/CalendarCreator.swift; sourceTree = "<group>"; };
 		BB0018 /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Store.swift; path = MeetingCopilot/Persistence/Store.swift; sourceTree = "<group>"; };
@@ -146,6 +150,8 @@
 				BB0014 /* LanguageModelHub.swift */,
 				BB0015 /* PromptLibrary.swift */,
 				BB0015A /* DetectedLanguage.swift */,
+				BB0015B /* PolishedText.swift */,
+				BB0015C /* TextPolisher.swift */,
 			);
 			name = NLP;
 			sourceTree = "<group>";
@@ -336,6 +342,8 @@
 				AA0014 /* LanguageModelHub.swift in Sources */,
 				AA0015 /* PromptLibrary.swift in Sources */,
 				AA0015A /* DetectedLanguage.swift in Sources */,
+				AA0015B /* PolishedText.swift in Sources */,
+				AA0015C /* TextPolisher.swift in Sources */,
 				AA0016 /* TaskCreator.swift in Sources */,
 				AA0017 /* CalendarCreator.swift in Sources */,
 				AA0018 /* Store.swift in Sources */,
