@@ -118,10 +118,28 @@ public final class BackgroundTaskManager: @unchecked Sendable {
                 .joined(separator: " ")
 
             logger.info("Full transcript length: \(transcript.count) characters")
+            logger.debug("Original transcript (first 200 chars): \(transcript.prefix(200))")
 
-            // Generate summary
+            // Polish transcript before summarization for better quality
+            let polished: PolishedText
+            do {
+                logger.info("Polishing transcript with Apple Intelligence...")
+                polished = try await TextPolisher.beautify(transcript, timeout: 15)
+                logger.info("Transcript polished: \(polished.edits.count) improvements made")
+                logger.debug("Polished transcript (first 200 chars): \(polished.text.prefix(200))")
+
+                // Store polished version for display
+                meeting.polishedTranscript = polished.text
+            } catch {
+                logger.warning("Failed to polish transcript, using original: \(error.localizedDescription)")
+                // Fallback: use original if polishing fails
+                polished = PolishedText(text: transcript, edits: [])
+                meeting.polishedTranscript = nil
+            }
+
+            // Generate summary from polished (clean) text
             let nlp = NLPService()
-            let summary = try await nlp.summarize(transcript: transcript)
+            let summary = try await nlp.summarize(transcript: polished.text)
 
             // Save to meeting
             let encoder = JSONEncoder()

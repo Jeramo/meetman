@@ -21,6 +21,7 @@ public final class Meeting {
     @Relationship(deleteRule: .cascade) public var transcriptChunks: [TranscriptChunk]
     @Relationship(deleteRule: .cascade) public var decisions: [Decision]
     public var summaryJSON: String? // Canonical JSON from NLP
+    public var polishedTranscript: String? // AI-polished version for display (iOS 26+)
     public var createdAt: Date
     public var updatedAt: Date
 
@@ -34,6 +35,7 @@ public final class Meeting {
         transcriptChunks: [TranscriptChunk] = [],
         decisions: [Decision] = [],
         summaryJSON: String? = nil,
+        polishedTranscript: String? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {
@@ -46,6 +48,7 @@ public final class Meeting {
         self.transcriptChunks = transcriptChunks
         self.decisions = decisions
         self.summaryJSON = summaryJSON
+        self.polishedTranscript = polishedTranscript
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
