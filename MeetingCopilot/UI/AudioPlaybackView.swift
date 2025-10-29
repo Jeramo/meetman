@@ -245,6 +245,9 @@ final class AudioPlaybackVM {
         }
 
         do {
+            // Configure audio session for playback
+            try AudioSessionManager.shared.configureForPlayback()
+
             audioPlayer = try AVAudioPlayer(contentsOf: audioURL)
             audioPlayer?.prepareToPlay()
             audioPlayer?.enableRate = true

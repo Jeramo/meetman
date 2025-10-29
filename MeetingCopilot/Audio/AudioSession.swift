@@ -40,6 +40,21 @@ public final class AudioSessionManager: @unchecked Sendable {
         }
     }
 
+    /// Configure audio session for playback
+    public func configureForPlayback() throws {
+        logger.info("Configuring audio session for playback")
+
+        do {
+            try session.setCategory(.playback, mode: .default, options: [])
+            try session.setActive(true, options: [])
+
+            logger.info("Audio session configured for playback")
+        } catch {
+            logger.error("Failed to configure audio session for playback: \(error.localizedDescription)")
+            throw AudioError.sessionSetupFailed
+        }
+    }
+
     /// Deactivate audio session
     public func deactivate() throws {
         logger.info("Deactivating audio session")
