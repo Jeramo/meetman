@@ -32,63 +32,32 @@ struct AudioPlaybackView: View {
                 // Transcript with highlighting
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        // Show polished transcript if available (iOS 26+)
-                        if let polished = meeting.polishedTranscript, !polished.isEmpty {
-                            VStack(alignment: .leading, spacing: 12) {
-                                HStack {
-                                    Image(systemName: "sparkles")
-                                        .foregroundStyle(.accent)
-                                    Text("AI-Enhanced Transcript")
-                                        .font(.caption.bold())
-                                        .foregroundStyle(.accent)
-                                }
-                                .padding(.bottom, 4)
+                        // Check if any chunks have polished text
+                        let hasPolishedChunks = viewModel.chunks.contains { $0.polishedText != nil }
 
-                                // Show continuous polished transcript
-                                Text(polished)
-                                    .font(.body)
-                                    .padding()
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color.green.opacity(0.05))
-                                    )
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.green.opacity(0.3), lineWidth: 1)
-                                    )
-
-                                Divider()
-                                    .padding(.vertical, 8)
-
-                                Text("Original Transcript (with timestamps)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-
-                                ForEach(viewModel.chunks) { chunk in
-                                    ChunkView(
-                                        chunk: chunk,
-                                        isActive: viewModel.activeChunkID == chunk.id,
-                                        currentTime: viewModel.currentTime
-                                    )
-                                    .id(chunk.id)
-                                    .onTapGesture {
-                                        viewModel.seek(to: chunk.startTime)
-                                    }
-                                }
+                        if hasPolishedChunks {
+                            // Show AI-enhanced header
+                            HStack {
+                                Image(systemName: "sparkles")
+                                    .foregroundStyle(.accent)
+                                Text("AI-Enhanced Transcript")
+                                    .font(.caption.bold())
+                                    .foregroundStyle(.accent)
                             }
-                        } else {
-                            // Fallback to original chunks only
-                            ForEach(viewModel.chunks) { chunk in
-                                ChunkView(
-                                    chunk: chunk,
-                                    isActive: viewModel.activeChunkID == chunk.id,
-                                    currentTime: viewModel.currentTime
-                                )
-                                .id(chunk.id)
-                                .onTapGesture {
-                                    viewModel.seek(to: chunk.startTime)
-                                }
+                            .padding(.bottom, 4)
+                        }
+
+                        // Show chunks with timestamps (use polished text if available)
+                        ForEach(viewModel.chunks) { chunk in
+                            ChunkView(
+                                chunk: chunk,
+                                isActive: viewModel.activeChunkID == chunk.id,
+                                currentTime: viewModel.currentTime,
+                                usePolished: true
+                            )
+                            .id(chunk.id)
+                            .onTapGesture {
+                                viewModel.seek(to: chunk.startTime)
                             }
                         }
                     }
@@ -232,6 +201,7 @@ struct ChunkView: View {
     let chunk: TranscriptChunk
     let isActive: Bool
     let currentTime: TimeInterval
+    let usePolished: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -240,18 +210,21 @@ struct ChunkView: View {
                 .font(.caption2)
                 .foregroundStyle(.secondary)
 
-            // Text with word-by-word highlighting
-            Text(chunk.text)
+            // Text with word-by-word highlighting (use polished if available)
+            let displayText = (usePolished && chunk.polishedText != nil) ? chunk.polishedText! : chunk.text
+            let isPolished = usePolished && chunk.polishedText != nil
+
+            Text(displayText)
                 .font(.body)
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(isActive ? Color.accentColor.opacity(0.2) : Color(.secondarySystemBackground))
+                        .fill(isActive ? Color.accentColor.opacity(0.2) : (isPolished ? Color.green.opacity(0.05) : Color(.secondarySystemBackground)))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(isActive ? Color.accentColor : Color.clear, lineWidth: 2)
+                        .stroke(isActive ? Color.accentColor : (isPolished ? Color.green.opacity(0.3) : Color.clear), lineWidth: isActive ? 2 : 1)
                 )
         }
     }

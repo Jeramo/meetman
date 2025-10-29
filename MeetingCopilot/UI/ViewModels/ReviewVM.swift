@@ -91,31 +91,34 @@ public final class ReviewVM {
         do {
             logger.info("Generating summary for meeting \(meeting.id)")
 
-            // Extract text on MainActor before async call
-            let transcript = meeting.transcriptChunks
-                .sorted { $0.index < $1.index }
-                .map(\.text)
-                .joined(separator: " ")
+            // Get chunks sorted
+            let chunks = meeting.transcriptChunks.sorted { $0.index < $1.index }
+            let nonEmptyChunks = chunks.filter { !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
-            // Polish transcript before summarization for better quality (iOS 26+)
-            let polished: PolishedText
+            // Polish each chunk individually for better display with timestamps (iOS 26+)
+            var polishedChunks: [String] = []
             if #available(iOS 26, *) {
-                do {
-                    logger.info("Polishing transcript with Apple Intelligence...")
-                    polished = try await TextPolisher.beautify(transcript, timeout: 15)
-                    logger.info("Transcript polished: \(polished.edits.count) improvements made")
-
-                    // Store polished version for display
-                    meeting.polishedTranscript = polished.text
-                } catch {
-                    logger.warning("Failed to polish transcript, using original: \(error.localizedDescription)")
-                    // Fallback: use original if polishing fails
-                    polished = PolishedText(text: transcript, edits: [])
-                    meeting.polishedTranscript = nil
+                for chunk in nonEmptyChunks {
+                    do {
+                        logger.debug("Polishing chunk \(chunk.index)...")
+                        let polished = try await TextPolisher.beautify(chunk.text, timeout: 20)
+                        chunk.polishedText = polished.text
+                        polishedChunks.append(polished.text)
+                        logger.debug("Chunk \(chunk.index) polished: \(polished.edits.count) edits")
+                    } catch {
+                        logger.warning("Failed to polish chunk \(chunk.index): \(error.localizedDescription)")
+                        chunk.polishedText = nil
+                        polishedChunks.append(chunk.text)
+                    }
                 }
+
+                // Join polished chunks for full transcript
+                let polishedFullTranscript = polishedChunks.joined(separator: " ")
+                meeting.polishedTranscript = polishedFullTranscript
+                logger.info("Transcript polishing complete for \(nonEmptyChunks.count) chunks")
             } else {
                 // iOS 25 and below: no polishing available
-                polished = PolishedText(text: transcript, edits: [])
+                polishedChunks = nonEmptyChunks.map(\.text)
                 meeting.polishedTranscript = nil
             }
 
@@ -124,7 +127,8 @@ public final class ReviewVM {
 
             // Use polished transcript for summarization (better quality)
             // Pass chosen output locale if user selected fallback
-            summary = try await nlpService.summarize(transcript: polished.text, forceOutputLocale: preferredLocale)
+            let transcriptForSummary = polishedChunks.joined(separator: " ")
+            summary = try await nlpService.summarize(transcript: transcriptForSummary, forceOutputLocale: preferredLocale)
 
             // Save to meeting
             let encoder = JSONEncoder()

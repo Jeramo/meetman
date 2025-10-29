@@ -18,14 +18,12 @@ actor LanguageModelHub {
     private let log = Logger(subsystem: "MeetingCopilot", category: "nlp")
     #if canImport(FoundationModels)
     private let model: SystemLanguageModel
-    private let session: LanguageModelSession
     private var isSessionBusy = false
 
     init() {
         // Use permissive guardrails for content transformations (meeting transcripts)
         model = SystemLanguageModel(guardrails: .permissiveContentTransformations)
-        session = LanguageModelSession(model: model)
-        log.info("Initialized LanguageModelSession with permissive guardrails")
+        log.info("Initialized LanguageModelHub with permissive guardrails")
     }
     #else
     init() {}
@@ -48,7 +46,12 @@ actor LanguageModelHub {
         defer { isSessionBusy = false }
 
         do {
-            return try await withTimeout(seconds: timeout) { [session] in
+            // Create a NEW session for each request to avoid context accumulation
+            // LanguageModelSession maintains conversation history which can exceed context window
+            log.debug("Creating new LanguageModelSession for request")
+            let session = LanguageModelSession(model: model)
+
+            return try await withTimeout(seconds: timeout) {
                 let opts = GenerationOptions(temperature: temperature)
                 let response = try await session.respond(to: prompt, generating: T.self, options: opts)
                 return response.content
@@ -65,30 +68,6 @@ actor LanguageModelHub {
         #endif
     }
 
-    /// Generate a feedback attachment for reporting guardrail violations to Apple
-    /// Use when you believe a guardrail was triggered incorrectly (false positive)
-    func feedbackAttachment(
-        sentiment: LanguageModelFeedback.Sentiment = .negative,
-        issues: [LanguageModelFeedback.Issue],
-        desiredOutput: Transcript.Entry
-    ) async -> Data? {
-        #if canImport(FoundationModels)
-        do {
-            let attachment = try await session.logFeedbackAttachment(
-                sentiment: sentiment,
-                issues: issues,
-                desiredOutput: desiredOutput
-            )
-            log.info("Generated feedback attachment (\(attachment.count) bytes)")
-            return attachment
-        } catch {
-            log.error("Failed to generate feedback attachment: \(error.localizedDescription)")
-            return nil
-        }
-        #else
-        return nil
-        #endif
-    }
 }
 
 struct TimeoutError: Error {}
