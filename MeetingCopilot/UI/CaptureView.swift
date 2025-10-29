@@ -7,11 +7,54 @@
 
 import SwiftUI
 
+// MARK: - Language Support Banner (inlined)
+
+struct LanguageSupportBanner: View {
+    let detected: String
+    let fallback: String
+    let onUseFallback: (String) -> Void
+    let onKeepDetected: () -> Void
+    let onDontShowAgain: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Apple Intelligence doesn't fully support \"\(detected.uppercased())\".")
+                .font(.headline)
+            Text("Summaries may fail or be limited. Choose a fallback language for generation.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            HStack {
+                Button("Use \(fallback.uppercased()) for summaries") {
+                    onUseFallback(fallback)
+                }
+                .buttonStyle(.borderedProminent)
+
+                Button("Keep \"\(detected.uppercased())\"") {
+                    onKeepDetected()
+                }
+                .buttonStyle(.bordered)
+            }
+
+            Button("Don't show again for \(detected.uppercased())") {
+                onDontShowAgain()
+            }
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+        }
+        .padding(12)
+        .background(.yellow.opacity(0.15), in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.yellow.opacity(0.35)))
+        .accessibilityElement(children: .combine)
+    }
+}
+
 /// Main recording interface with live transcript
 struct CaptureView: View {
 
     @State private var viewModel = MeetingVM()
     @State private var showingDecisionSheet = false
+    @State private var showingLanguagePicker = false
     @State private var decisionText = ""
     @State private var meetingTitle = ""
 
@@ -44,6 +87,9 @@ struct CaptureView: View {
         .sheet(isPresented: $showingDecisionSheet) {
             decisionSheet
         }
+        .sheet(isPresented: $showingLanguagePicker) {
+            languagePickerSheet
+        }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
                 viewModel.errorMessage = nil
@@ -74,6 +120,24 @@ struct CaptureView: View {
             TextField("Meeting Title (optional)", text: $meetingTitle)
                 .textFieldStyle(.roundedBorder)
                 .padding(.horizontal)
+
+            // Language selector
+            Button {
+                showingLanguagePicker = true
+            } label: {
+                HStack {
+                    Image(systemName: "globe")
+                    Text(viewModel.userOverrideLocale?.displayName ?? "Auto (English)")
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                }
+                .padding()
+                .background(Color(.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+            .foregroundStyle(.primary)
+            .padding(.horizontal)
 
             Text("Audio stays on this device. Tap to begin.")
                 .font(.subheadline)
@@ -108,6 +172,28 @@ struct CaptureView: View {
 
     private var recordingView: some View {
         VStack(spacing: 24) {
+
+            // Language support banner (if needed during recording)
+            if #available(iOS 26, *), viewModel.showLanguageBanner, let info = viewModel.bannerInfo {
+                LanguageSupportBanner(
+                    detected: info.detected,
+                    fallback: info.fallback,
+                    onUseFallback: { chosen in
+                        // Store chosen locale for summary generation
+                        UserDefaults.standard.set(chosen, forKey: "preferred.output.locale")
+                        viewModel.showLanguageBanner = false
+                    },
+                    onKeepDetected: {
+                        // User wants to try with detected language
+                        UserDefaults.standard.removeObject(forKey: "preferred.output.locale")
+                        viewModel.showLanguageBanner = false
+                    },
+                    onDontShowAgain: {
+                        viewModel.suppressWarningsForDetected()
+                    }
+                )
+                .padding(.horizontal)
+            }
 
             // Timer
             VStack(spacing: 8) {
@@ -221,6 +307,64 @@ struct CaptureView: View {
             }
         }
         .presentationDetents([.medium])
+    }
+
+    // MARK: - Language Picker Sheet
+
+    private var languagePickerSheet: some View {
+        NavigationStack {
+            List {
+                Section {
+                    Button {
+                        viewModel.userOverrideLocale = nil
+                        showingLanguagePicker = false
+                    } label: {
+                        HStack {
+                            Text("Auto (English)")
+                            Spacer()
+                            if viewModel.userOverrideLocale == nil {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(.blue)
+                            }
+                        }
+                    }
+                    .foregroundStyle(.primary)
+                } header: {
+                    Text("Default")
+                } footer: {
+                    Text("Automatically detects language and switches to English if needed.")
+                }
+
+                Section("All Languages") {
+                    ForEach(ASRLocale.allCases, id: \.self) { locale in
+                        Button {
+                            viewModel.userOverrideLocale = locale
+                            showingLanguagePicker = false
+                        } label: {
+                            HStack {
+                                Text(locale.displayName)
+                                Spacer()
+                                if viewModel.userOverrideLocale == locale {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(.blue)
+                                }
+                            }
+                        }
+                        .foregroundStyle(.primary)
+                    }
+                }
+            }
+            .navigationTitle("Transcription Language")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        showingLanguagePicker = false
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
 }
 

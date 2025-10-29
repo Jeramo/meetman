@@ -17,6 +17,8 @@ public struct MarkdownExporter {
 
     /// Render meeting to Markdown string
     public static func render(meeting: Meeting, summary: SummaryResult?) -> String {
+        logger.debug("Rendering Markdown: \(meeting.transcriptChunks.count) chunks, \(meeting.decisions.count) decisions")
+
         var md = ""
 
         // Header
@@ -77,8 +79,16 @@ public struct MarkdownExporter {
         if !meeting.transcriptChunks.isEmpty {
             md += "## Transcript\n\n"
             let fullTranscript = meeting.fullTranscript
-            md += fullTranscript
-            md += "\n"
+            if fullTranscript.isEmpty {
+                logger.warning("Meeting has transcript chunks but fullTranscript is empty")
+                md += "*No transcript content available*\n"
+            } else {
+                md += fullTranscript
+                md += "\n"
+            }
+        } else {
+            logger.warning("Meeting has no transcript chunks")
+            md += "## Transcript\n\n*No transcript content available*\n"
         }
 
         // Footer
@@ -129,6 +139,8 @@ public struct JSONExporter {
 
     /// Export meeting to JSON
     public static func export(meeting: Meeting, summary: SummaryResult?, to directory: URL) throws -> URL {
+        logger.debug("Exporting JSON: \(meeting.transcriptChunks.count) chunks, \(meeting.decisions.count) decisions")
+
         let payload = MeetingExport(meeting: meeting, summary: summary)
 
         let encoder = JSONEncoder()

@@ -2,25 +2,129 @@
 //  LiveTranscriber.swift
 //  MeetingCopilot
 //
-//  Streaming speech recognition using SFSpeechRecognizer
+//  Streaming speech recognition with auto-locale switching
 //
 
 import Foundation
 import Speech
 import AVFoundation
+import NaturalLanguage
 import OSLog
 
 private let logger = Logger(subsystem: "com.jeramo.meetingman", category: "asr")
 
+// MARK: - ASR Language Policy (inlined)
+
+/// Supported ASR locales
+public enum ASRLocale: String, CaseIterable, Equatable, Sendable {
+    case enUS = "en_US"
+    case svSE = "sv_SE"
+    case frFR = "fr_FR"
+    case deDe = "de_DE"
+    case esES = "es_ES"
+    case itIT = "it_IT"
+    case ptBR = "pt_BR"
+    case jaJP = "ja_JP"
+    case koKR = "ko_KR"
+    case zhCN = "zh_CN"
+
+    /// Convert to Locale for SFSpeechRecognizer
+    public var locale: Locale {
+        Locale(identifier: rawValue)
+    }
+
+    /// Human-readable display name
+    public var displayName: String {
+        switch self {
+        case .enUS: return "English (US)"
+        case .svSE: return "Swedish"
+        case .frFR: return "French"
+        case .deDe: return "German"
+        case .esES: return "Spanish"
+        case .itIT: return "Italian"
+        case .ptBR: return "Portuguese (Brazil)"
+        case .jaJP: return "Japanese"
+        case .koKR: return "Korean"
+        case .zhCN: return "Chinese (Simplified)"
+        }
+    }
+}
+
+/// ASR language policy for choosing and switching locales
+public struct LanguagePolicy {
+
+    /// Decide initial ASR locale from user override or device language.
+    /// Default to English to avoid Swedish LM bias for English speakers.
+    public static func initialASRLocale(
+        userOverride: ASRLocale? = nil,
+        device: Locale = .autoupdatingCurrent
+    ) -> ASRLocale {
+        // User override takes priority
+        if let override = userOverride {
+            return override
+        }
+
+        // Default to English to avoid Swedish bias
+        // This prevents English speech from being transcribed as Swedish
+        return .enUS
+    }
+
+    /// NaturalLanguage-based check to decide if we should switch to English.
+    /// Trigger only when current recognizer is not en_US and English confidence is high.
+    ///
+    /// - Parameters:
+    ///   - current: Current ASR locale
+    ///   - partialText: Partial transcript text to analyze
+    ///   - threshold: Confidence threshold (default 0.75)
+    /// - Returns: True if should switch to English
+    public static func shouldSwitchToEnglish(
+        from current: ASRLocale,
+        partialText: String,
+        threshold: Double = 0.75
+    ) -> Bool {
+        // Don't switch if already English
+        guard current != .enUS else { return false }
+
+        // Need at least 8 characters for meaningful detection
+        guard partialText.count >= 8 else { return false }
+
+        let recognizer = NLLanguageRecognizer()
+        recognizer.processString(partialText)
+
+        guard let dominantLanguage = recognizer.dominantLanguage else {
+            return false
+        }
+
+        // Get confidence for dominant language
+        let hypotheses = recognizer.languageHypotheses(withMaximum: 1)
+        let confidence = hypotheses[dominantLanguage] ?? 0.0
+
+        // Switch if English detected with high confidence
+        return dominantLanguage.rawValue == "en" && confidence >= threshold
+    }
+}
+
+// MARK: - Live Transcriber
+
 /// Callback for transcript segments
 public typealias TranscriptCallback = @Sendable (TranscriptChunkData) -> Void
 
-/// Live speech-to-text transcriber using SFSpeechRecognizer
+/// Notification for ASR partial results (used after locale restart)
+extension Notification.Name {
+    public static let asrPartial = Notification.Name("asrPartial")
+}
+
+/// Live speech-to-text transcriber with auto-locale switching
 public final class LiveTranscriber: @unchecked Sendable {
 
-    private let recognizer: SFSpeechRecognizer?
-    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
-    private var recognitionTask: SFSpeechRecognitionTask?
+    // MARK: - State
+
+    private var recognizer: SFSpeechRecognizer?
+    private var request: SFSpeechAudioBufferRecognitionRequest?
+    private var task: SFSpeechRecognitionTask?
+
+    private(set) var currentLocale: ASRLocale = .enUS
+    private var hasSwitchedLocale = false
 
     private var chunkIndex = 0
     private var startTime = Date()
@@ -32,15 +136,13 @@ public final class LiveTranscriber: @unchecked Sendable {
 
     public private(set) var isTranscribing = false
 
-    public init(locale: Locale = .current) {
-        self.recognizer = SFSpeechRecognizer(locale: locale)
-        logger.info("Initialized transcriber with locale: \(locale.identifier)")
+    // MARK: - Initialization
+
+    public init() {
+        logger.info("LiveTranscriber initialized (locale will be set on start)")
     }
 
-    /// Check if speech recognition is available
-    public var isAvailable: Bool {
-        recognizer?.isAvailable ?? false
-    }
+    // MARK: - Authorization
 
     /// Request speech recognition authorization
     public static func requestAuthorization() async -> Bool {
@@ -55,30 +157,45 @@ public final class LiveTranscriber: @unchecked Sendable {
         }
     }
 
-    /// Start transcription, calling callback for each segment
+    // MARK: - Transcription Control
+
+    /// Start transcription with specified locale.
+    /// Idempotent: stops any existing task before starting a new one.
+    /// Note: Does NOT install audio tap - buffers must be fed via append(buffer:)
+    ///
+    /// - Parameters:
+    ///   - locale: ASR locale to use
+    ///   - meetingID: Meeting identifier
+    ///   - onSegment: Callback for transcript segments
     public func start(
+        locale: ASRLocale,
         meetingID: UUID,
         onSegment: @escaping TranscriptCallback
-    ) async throws {
-        guard !isTranscribing else {
-            logger.warning("Already transcribing")
-            return
+    ) throws {
+        logger.info("LiveTranscriber.start() called with locale: \(locale.rawValue)")
+
+        // Idempotent: stop any existing task
+        if isTranscribing {
+            logger.warning("Transcriber already running, stopping first")
+            stop()
         }
 
-        guard let recognizer = recognizer else {
-            logger.error("No recognizer available")
-            throw ASRError.notAvailable
-        }
+        self.currentLocale = locale
+        self.currentMeetingID = meetingID
+        self.currentCallback = onSegment
 
-        logger.info("Recognizer available: \(recognizer.isAvailable)")
-        guard recognizer.isAvailable else {
-            logger.error("Recognizer not available")
+        logger.info("Initializing SFSpeechRecognizer with locale: \(self.currentLocale.rawValue, privacy: .public)")
+
+        recognizer = SFSpeechRecognizer(locale: currentLocale.locale)
+        recognizer?.defaultTaskHint = .dictation
+
+        guard let recognizer = recognizer, recognizer.isAvailable else {
+            logger.error("Recognizer not available for locale: \(self.currentLocale.rawValue)")
             throw ASRError.notAvailable
         }
 
         // Check authorization
         let status = SFSpeechRecognizer.authorizationStatus()
-        logger.info("Speech recognition status: \(String(describing: status))")
         guard status == .authorized else {
             logger.error("Speech recognition not authorized")
             throw ASRError.permissionDenied
@@ -89,26 +206,18 @@ public final class LiveTranscriber: @unchecked Sendable {
         startTime = Date()
         lastResultTime = 0
         lastPartialResult = nil
-        currentMeetingID = meetingID
-        currentCallback = onSegment
         isStopping = false
+        hasSwitchedLocale = false
 
         // Create recognition request
-        let request = SFSpeechAudioBufferRecognitionRequest()
-        request.shouldReportPartialResults = true
-        request.requiresOnDeviceRecognition = false // Allow cloud fallback for better reliability
-
-        recognitionRequest = request
+        let req = SFSpeechAudioBufferRecognitionRequest()
+        req.requiresOnDeviceRecognition = true
+        req.shouldReportPartialResults = true
+        self.request = req
 
         // Start recognition task
-        logger.info("Creating recognition task...")
-        recognitionTask = recognizer.recognitionTask(with: request) { [weak self] result, error in
-            guard let self = self else {
-                logger.warning("Recognition callback called but self is nil")
-                return
-            }
-
-            logger.debug("Recognition callback invoked")
+        task = recognizer.recognitionTask(with: req) { [weak self] result, error in
+            guard let self else { return }
 
             // Ignore callbacks after stop() has been called
             guard !self.isStopping else {
@@ -117,7 +226,7 @@ public final class LiveTranscriber: @unchecked Sendable {
             }
 
             if let error = error {
-                logger.error("Recognition error: \(error.localizedDescription)")
+                logger.error("ASR error: \(String(describing: error), privacy: .public)")
                 return
             }
 
@@ -129,11 +238,25 @@ public final class LiveTranscriber: @unchecked Sendable {
             let currentTime = Date().timeIntervalSince(self.startTime)
             let text = result.bestTranscription.formattedString
 
-            // Log all results for debugging
-            logger.info("Recognition result (final=\(result.isFinal)): \(text)")
+            logger.debug("Recognition result (final=\(result.isFinal)): \(text.prefix(50))...")
+
+            // Early auto-switch to English (once only)
+            if !self.hasSwitchedLocale,
+               LanguagePolicy.shouldSwitchToEnglish(from: self.currentLocale, partialText: text) {
+                logger.info("Auto-switching ASR locale to en_US based on NL detection")
+                self.hasSwitchedLocale = true
+                Task { @MainActor in
+                    await self.restartRecognition(with: .enUS)
+                }
+                return // Don't emit this partial, we're restarting
+            }
 
             if result.isFinal {
                 // Emit final result
+                guard let meetingID = self.currentMeetingID, let callback = self.currentCallback else {
+                    return
+                }
+
                 let chunk = TranscriptChunkData(
                     meetingID: meetingID,
                     index: self.chunkIndex,
@@ -145,16 +268,20 @@ public final class LiveTranscriber: @unchecked Sendable {
 
                 logger.info("Final transcript chunk #\(self.chunkIndex): \(chunk.text)")
 
-                onSegment(chunk)
+                callback(chunk)
 
                 self.chunkIndex += 1
                 self.lastResultTime = currentTime
-                self.lastPartialResult = nil // Clear partial since we got final
+                self.lastPartialResult = nil
             } else {
-                // Track partial result in case we need it when stopping
+                // Track partial result
                 self.lastPartialResult = (text: text, time: currentTime)
 
-                // Also emit partial result for live transcript display
+                // Emit partial result for live display
+                guard let meetingID = self.currentMeetingID, let callback = self.currentCallback else {
+                    return
+                }
+
                 let partialChunk = TranscriptChunkData(
                     meetingID: meetingID,
                     index: self.chunkIndex,
@@ -164,23 +291,21 @@ public final class LiveTranscriber: @unchecked Sendable {
                     isFinal: false
                 )
 
-                onSegment(partialChunk)
+                callback(partialChunk)
             }
         }
 
-        logger.info("Recognition task created, state: \(String(describing: self.recognitionTask?.state))")
         isTranscribing = true
-        logger.info("Transcription started")
+        logger.info("Transcription started with locale: \(self.currentLocale.rawValue)")
     }
 
     /// Append audio buffer for recognition
     public func append(buffer: AVAudioPCMBuffer) {
-        guard let request = recognitionRequest else {
+        guard let request = request else {
             logger.warning("Attempted to append buffer without active recognition request")
             return
         }
         request.append(buffer)
-        logger.debug("Appended buffer: \(buffer.frameLength) frames")
     }
 
     /// Stop transcription
@@ -210,17 +335,119 @@ public final class LiveTranscriber: @unchecked Sendable {
             self.chunkIndex += 1
         }
 
-        recognitionRequest?.endAudio()
-        recognitionTask?.cancel()
+        task?.finish()
+        task?.cancel()
+        request?.endAudio()
 
-        recognitionRequest = nil
-        recognitionTask = nil
+        task = nil
+        request = nil
+        recognizer = nil
         lastPartialResult = nil
         currentMeetingID = nil
         currentCallback = nil
         isTranscribing = false
+        hasSwitchedLocale = false
 
         logger.info("Transcription stopped after \(self.chunkIndex) chunks")
+    }
+
+    // MARK: - Private Helpers
+
+    /// Restart recognition with a new locale (single-switch path).
+    /// Replaces recognizer+request+task while keeping audio buffer flow.
+    @MainActor
+    private func restartRecognition(with newLocale: ASRLocale) async {
+        logger.info("Restarting recognition with locale: \(newLocale.rawValue)")
+
+        // Cancel current task
+        task?.cancel()
+        task = nil
+        request?.endAudio()
+        request = nil
+        recognizer = nil
+
+        // Update locale
+        currentLocale = newLocale
+        recognizer = SFSpeechRecognizer(locale: newLocale.locale)
+        recognizer?.defaultTaskHint = .dictation
+
+        guard let recognizer = recognizer, recognizer.isAvailable else {
+            logger.error("Recognizer not available after switch to: \(newLocale.rawValue)")
+            return
+        }
+
+        // Create new request
+        let req = SFSpeechAudioBufferRecognitionRequest()
+        req.requiresOnDeviceRecognition = true
+        req.shouldReportPartialResults = true
+        request = req
+
+        // Start new task (buffers continue to flow via append())
+        task = recognizer.recognitionTask(with: req) { [weak self] result, error in
+            guard let self else { return }
+
+            guard !self.isStopping else {
+                logger.debug("Ignoring recognition callback after stop (post-switch)")
+                return
+            }
+
+            if let error = error {
+                logger.error("ASR error (after switch): \(String(describing: error), privacy: .public)")
+                return
+            }
+
+            guard let result = result else {
+                logger.warning("Recognition callback with no result (after switch)")
+                return
+            }
+
+            let currentTime = Date().timeIntervalSince(self.startTime)
+            let text = result.bestTranscription.formattedString
+
+            logger.debug("Recognition result (post-switch, final=\(result.isFinal)): \(text.prefix(50))...")
+
+            if result.isFinal {
+                guard let meetingID = self.currentMeetingID, let callback = self.currentCallback else {
+                    return
+                }
+
+                let chunk = TranscriptChunkData(
+                    meetingID: meetingID,
+                    index: self.chunkIndex,
+                    text: text,
+                    startTime: self.lastResultTime,
+                    endTime: currentTime,
+                    isFinal: true
+                )
+
+                logger.info("Final transcript chunk #\(self.chunkIndex) (post-switch): \(chunk.text)")
+
+                callback(chunk)
+
+                self.chunkIndex += 1
+                self.lastResultTime = currentTime
+                self.lastPartialResult = nil
+            } else {
+                self.lastPartialResult = (text: text, time: currentTime)
+
+                guard let meetingID = self.currentMeetingID, let callback = self.currentCallback else {
+                    return
+                }
+
+                let partialChunk = TranscriptChunkData(
+                    meetingID: meetingID,
+                    index: self.chunkIndex,
+                    text: text,
+                    startTime: self.lastResultTime,
+                    endTime: currentTime,
+                    isFinal: false
+                )
+
+                callback(partialChunk)
+            }
+        }
+
+        logger.info("Recognition restarted with locale: \(newLocale.rawValue)")
     }
 
     deinit {

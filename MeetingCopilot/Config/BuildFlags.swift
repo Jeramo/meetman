@@ -8,16 +8,15 @@
 import Foundation
 
 #if DEBUG
-/// Enable Apple Intelligence (Foundation Models) integration
-/// Set to false to force heuristic summarizer for testing
-public let BACKEND_AI: Bool = true
-
 /// Enable iCloud sync for SwiftData container
 public let ICLOUD_SYNC: Bool = false
 #else
-/// Production: Apple Intelligence enabled by default
-public let BACKEND_AI: Bool = true
-
 /// Production: iCloud sync disabled by default
 public let ICLOUD_SYNC: Bool = false
 #endif
+
+/// Transcription locale (deprecated - now handled by LanguagePolicy)
+/// ASR locale is chosen automatically or via user selection in CaptureView
+/// See: ASR/LanguagePolicy.swift
+@available(*, deprecated, message: "Use LanguagePolicy.initialASRLocale() instead")
+public let TRANSCRIPTION_LOCALE: String = "en_US"

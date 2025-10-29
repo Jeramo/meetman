@@ -11,22 +11,18 @@ import Foundation
 public struct FeatureGates {
 
     /// Whether Apple Intelligence (Foundation Models) is available
-    /// Checks both build flag and runtime availability
+    /// Checks runtime availability for iOS 26+ and FoundationModels framework
     public static var aiEnabled: Bool {
-        #if BACKEND_AI
-            if #available(iOS 26, *) {
-                // Check if FoundationModels framework is actually available
-                #if canImport(FoundationModels)
-                return true
-                #else
-                return false
-                #endif
-            } else {
-                return false
-            }
-        #else
+        if #available(iOS 26, *) {
+            // Check if FoundationModels framework is actually available
+            #if canImport(FoundationModels)
+            return true
+            #else
             return false
-        #endif
+            #endif
+        } else {
+            return false
+        }
     }
 
     /// Whether iCloud sync is enabled

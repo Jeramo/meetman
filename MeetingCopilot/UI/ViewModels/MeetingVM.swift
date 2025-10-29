@@ -11,8 +11,259 @@ import SwiftUI
 import Observation
 @preconcurrency import AVFoundation
 import OSLog
+import NaturalLanguage
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
 
 private let logger = Logger(subsystem: "com.jeramo.meetingman", category: "ui")
+
+// MARK: - Language Support Helpers (inlined temporarily)
+
+/// Language detection result
+public struct LanguageDetectionResult: Sendable {
+    public let bcp47: String
+    public let name: String?
+    public let confidence: Double
+    public let method: DetectionMethod
+
+    public enum DetectionMethod: String, Sendable {
+        case foundationModels = "Foundation Models"
+        case naturalLanguage = "NaturalLanguage"
+        case fallback = "Default"
+    }
+
+    public init(bcp47: String, name: String? = nil, confidence: Double, method: DetectionMethod) {
+        self.bcp47 = bcp47
+        self.name = name
+        self.confidence = confidence
+        self.method = method
+    }
+}
+
+/// Language detector with Foundation Models + NaturalLanguage fallback
+public actor LanguageDetector {
+    public static let shared = LanguageDetector()
+
+    private init() {}
+
+    /// Detect language using Foundation Models (iOS 26+) with NaturalLanguage fallback
+    public func detect(_ text: String) async -> LanguageDetectionResult {
+        guard !text.isEmpty else {
+            return LanguageDetectionResult(bcp47: "en-US", name: "English", confidence: 0.0, method: .fallback)
+        }
+
+        // Try Foundation Models first (iOS 26+)
+        if #available(iOS 26, *) {
+            if let fmResult = try? await detectWithFoundationModels(text) {
+                logger.info("Language detected via Foundation Models: \(fmResult.bcp47) (\(fmResult.name ?? "unknown")) at \(fmResult.confidence)")
+                return fmResult
+            }
+        }
+
+        // Fall back to NaturalLanguage
+        if let nlResult = detectWithNaturalLanguage(text) {
+            logger.info("Language detected via NaturalLanguage: \(nlResult.bcp47) at \(nlResult.confidence)")
+            return nlResult
+        }
+
+        // Last resort default
+        logger.warning("Language detection failed, using default en-US")
+        return LanguageDetectionResult(bcp47: "en-US", name: "English", confidence: 0.0, method: .fallback)
+    }
+
+    // MARK: - Foundation Models Detection (iOS 26+)
+
+    @available(iOS 26, *)
+    private func detectWithFoundationModels(_ text: String) async throws -> LanguageDetectionResult {
+        #if canImport(FoundationModels)
+        let prompt = PromptLibrary.detectLanguagePrompt(sample: text, fallback: "en-US")
+
+        let detected: DetectedLanguage = try await LanguageModelHub.shared.generate(
+            prompt: prompt,
+            as: DetectedLanguage.self,
+            temperature: 0.0,  // Classification = deterministic
+            timeout: 8
+        )
+
+        // Normalize BCP-47 tag (lowercase, use "-" not "_")
+        let normalized = detected.bcp47
+            .replacingOccurrences(of: "_", with: "-")
+            .lowercased()
+
+        return LanguageDetectionResult(
+            bcp47: normalized,
+            name: detected.name,
+            confidence: detected.confidence,
+            method: .foundationModels
+        )
+        #else
+        throw LLMError.notAvailable
+        #endif
+    }
+
+    // MARK: - NaturalLanguage Fallback
+
+    private func detectWithNaturalLanguage(_ text: String) -> LanguageDetectionResult? {
+        let recognizer = NLLanguageRecognizer()
+        recognizer.processString(text)
+
+        guard let dominantLanguage = recognizer.dominantLanguage else {
+            return nil
+        }
+
+        let hypotheses = recognizer.languageHypotheses(withMaximum: 1)
+        let confidence = hypotheses[dominantLanguage] ?? 0.0
+
+        let bcp47 = mapToFullBCP47(dominantLanguage.rawValue)
+
+        return LanguageDetectionResult(
+            bcp47: bcp47,
+            name: nil,
+            confidence: confidence,
+            method: .naturalLanguage
+        )
+    }
+
+    /// Map ISO 639-1 code to BCP-47 with region
+    private func mapToFullBCP47(_ iso639: String) -> String {
+        switch iso639.lowercased() {
+        case "sv": return "sv-se"
+        case "en": return "en-us"
+        case "fr": return "fr-fr"
+        case "de": return "de-de"
+        case "es": return "es-es"
+        case "it": return "it-it"
+        case "pt": return "pt-br"
+        case "ja": return "ja-jp"
+        case "ko": return "ko-kr"
+        case "zh": return "zh-hans"
+        case "nb", "no": return "nb-no"
+        case "da": return "da-dk"
+        case "nl": return "nl-nl"
+        case "fi": return "fi-fi"
+        default: return iso639
+        }
+    }
+}
+
+/// Runtime gate for Apple Intelligence language coverage
+@available(iOS 26, *)
+enum LLMLanguageSupport {
+    /// iOS 26.0 supported languages
+    private static let ios26_0Languages: Set<String> = [
+        "en-us", "en-gb", "en-au",
+        "fr-fr", "fr-ca",
+        "de-de",
+        "it-it",
+        "pt-br",
+        "es-es", "es-us", "es-419",
+        "zh-hans",
+        "ja-jp",
+        "ko-kr"
+    ]
+
+    /// iOS 26.1+ additional languages
+    @available(iOS 26.1, *)
+    private static let ios26_1AdditionalLanguages: Set<String> = [
+        "zh-hant",      // Chinese (Traditional)
+        "da-dk",        // Danish
+        "nl-nl",        // Dutch
+        "nb-no", "nn-no", // Norwegian (Bokmål, Nynorsk)
+        "pt-pt",        // Portuguese (Portugal)
+        "sv-se",        // Swedish
+        "tr-tr",        // Turkish
+        "vi-vn"         // Vietnamese
+    ]
+
+    /// Get supported languages based on iOS version
+    private static var supportedBCP47: Set<String> {
+        var languages = ios26_0Languages
+        if #available(iOS 26.1, *) {
+            languages.formUnion(ios26_1AdditionalLanguages)
+        }
+        return languages
+    }
+
+    static func normalize(_ bcp47: String) -> String {
+        bcp47.replacingOccurrences(of: "_", with: "-").lowercased()
+    }
+
+    static func isSupported(_ bcp47: String) -> Bool {
+        let tag = normalize(bcp47)
+        let supported = supportedBCP47
+        if supported.contains(tag) { return true }
+        let base = tag.split(separator: "-").first.map(String.init) ?? tag
+        if supported.contains(base) { return true }
+        return supported.contains(where: { $0.hasPrefix(base + "-") })
+    }
+
+    static func suggestedFallback(for bcp47: String) -> String {
+        let tag = normalize(bcp47)
+        let base = tag.split(separator: "-").first.map(String.init) ?? tag
+
+        // Check if native language is supported on current iOS version
+        if #available(iOS 26.1, *) {
+            // iOS 26.1+ supports more languages directly
+            switch base {
+            case "sv": return "sv-se"  // Swedish now supported
+            case "da": return "da-dk"  // Danish now supported
+            case "nl": return "nl-nl"  // Dutch now supported
+            case "no", "nb", "nn": return "nb-no"  // Norwegian now supported
+            case "tr": return "tr-tr"  // Turkish now supported
+            case "vi": return "vi-vn"  // Vietnamese now supported
+            case "pt":
+                // Check region - Portugal now supported
+                if tag.contains("pt-pt") { return "pt-pt" }
+                return "pt-br"
+            case "zh":
+                // Check if Traditional Chinese
+                if tag.contains("hant") || tag.contains("tw") || tag.contains("hk") {
+                    return "zh-hant"
+                }
+                return "zh-hans"
+            default:
+                break
+            }
+        }
+
+        // iOS 26.0 fallbacks (or iOS 26.1+ for unsupported languages)
+        switch base {
+        case "pt": return "pt-br"
+        case "es": return "es-es"
+        case "fr": return "fr-fr"
+        case "de": return "de-de"
+        case "it": return "it-it"
+        case "nl", "da", "no", "sv", "tr", "vi": return "en-gb"  // Fallback to English on 26.0
+        case "zh": return "zh-hans"
+        default: return "en-us"
+        }
+    }
+}
+
+@available(iOS 26, *)
+struct AppleIntelligenceGate {
+    enum Status {
+        case available(outputLocale: String)
+        case unsupported(detected: String, fallback: String)
+        case notAvailableOnDevice
+    }
+
+    static func status(for detectedBCP47: String) -> Status {
+        #if canImport(FoundationModels)
+        if LLMLanguageSupport.isSupported(detectedBCP47) {
+            return .available(outputLocale: LLMLanguageSupport.normalize(detectedBCP47))
+        } else {
+            return .unsupported(
+                detected: LLMLanguageSupport.normalize(detectedBCP47),
+                fallback: LLMLanguageSupport.suggestedFallback(for: detectedBCP47)
+            )
+        }
+        #else
+        return .notAvailableOnDevice
+        #endif
+    }
+}
 
 /// Observable view model for meeting capture
 @MainActor
@@ -26,6 +277,15 @@ public final class MeetingVM {
     public var elapsedTime: TimeInterval = 0
     public var liveTranscript: String = ""
     public var errorMessage: String?
+
+    // Language support state
+    public var detectedLanguageBCP47: String?
+    public var showLanguageBanner: Bool = false
+    public var bannerInfo: (detected: String, fallback: String)?
+    private var hasDetectedLanguage: Bool = false
+
+    // ASR language override (nil = use policy default)
+    public var userOverrideLocale: ASRLocale?
 
     // MARK: - Dependencies
 
@@ -80,23 +340,15 @@ public final class MeetingVM {
         let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         audioURL = docsURL.appendingPathComponent("meeting_\(meeting.id.uuidString).wav")
 
-        // Start audio recording
-        try await audioRecorder.startRecording(to: audioURL!) { [weak self] buffer in
-            guard let self = self else { return }
+        // Choose ASR locale using policy
+        let asrLocale = LanguagePolicy.initialASRLocale(userOverride: self.userOverrideLocale)
+        logger.info("Selected ASR locale: \(asrLocale.rawValue) (override: \(self.userOverrideLocale?.rawValue ?? "none"))")
 
-            logger.debug("Received audio buffer: \(buffer.frameLength) frames")
-
-            // Stream to transcriber (buffer is read-only, safe to pass)
-            let bufferCopy = buffer
-            Task { @MainActor [weak self] in
-                guard let self = self else { return }
-                logger.debug("Appending buffer to transcriber")
-                self.transcriber.append(buffer: bufferCopy)
-            }
-        }
-
-        // Start transcription
-        try await transcriber.start(meetingID: meeting.id) { [weak self] chunkData in
+        // Start transcription first
+        try transcriber.start(
+            locale: asrLocale,
+            meetingID: meeting.id
+        ) { [weak self] chunkData in
             guard let self = self else { return }
 
             // Convert DTO to model on MainActor
@@ -107,9 +359,19 @@ public final class MeetingVM {
             }
         }
 
+        // Start audio recording - buffers will be fed to transcriber
+        try await audioRecorder.startRecording(to: audioURL!) { [weak self] buffer in
+            guard let self = self else { return }
+            // Forward audio buffers to transcriber
+            self.transcriber.append(buffer: buffer)
+        }
+
         // Update state
         isRecording = true
         elapsedTime = 0
+        hasDetectedLanguage = false
+
+        // Language detection will happen after first transcript chunk arrives
 
         // Start timer
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
@@ -124,23 +386,28 @@ public final class MeetingVM {
 
     /// Stop recording
     public func stopCapture() async {
-        guard isRecording else { return }
+        guard isRecording else {
+            logger.warning("stopCapture called but not recording")
+            return
+        }
 
         logger.info("Stopping meeting capture")
 
-        // Stop timer
+        // Stop timer first
         timer?.invalidate()
         timer = nil
 
-        // Stop transcription (emits final chunk asynchronously)
-        transcriber.stop()
-
-        // Stop audio recording
+        // Stop audio recording FIRST to stop buffer flow
         do {
             try audioRecorder.stopRecording()
+            logger.info("Audio recorder stopped")
         } catch {
             logger.error("Failed to stop recording: \(error.localizedDescription)")
         }
+
+        // Then stop transcription (no more buffers will arrive)
+        transcriber.stop()
+        logger.info("Transcriber stopped")
 
         // Flush assembler
         await assembler.flush()
@@ -168,8 +435,13 @@ public final class MeetingVM {
             }
         }
 
+        // Clear state for next recording
         isRecording = false
-        logger.info("Meeting capture stopped")
+        liveTranscript = ""
+        audioURL = nil
+        hasDetectedLanguage = false
+
+        logger.info("Meeting capture stopped, state cleared")
     }
 
     /// Mark a decision during recording
@@ -207,6 +479,19 @@ public final class MeetingVM {
         let sentences = fullText.components(separatedBy: ". ")
         liveTranscript = sentences.suffix(2).joined(separator: ". ")
 
+        // Detect language once we have enough text (iOS 26+)
+        if #available(iOS 26, *), !hasDetectedLanguage, fullText.count >= 100 {
+            hasDetectedLanguage = true
+            logger.info("Detecting language from \(fullText.count) chars of transcript")
+
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                let result = await LanguageDetector.shared.detect(fullText)
+                logger.info("Language detection complete: \(result.bcp47) (\(result.name ?? "unknown"), \(result.confidence), \(result.method.rawValue))")
+                self.onLanguageDetected(result.bcp47)
+            }
+        }
+
         // Add chunk to meeting's relationship array (establishes SwiftData relationship)
         if let meeting = meeting {
             meeting.transcriptChunks.append(chunk)
@@ -232,5 +517,48 @@ public final class MeetingVM {
         } else {
             return String(format: "%02d:%02d", minutes, seconds)
         }
+    }
+
+    // MARK: - Language Support
+
+    @available(iOS 26, *)
+    private var suppressed: Set<String> {
+        get {
+            let raw = UserDefaults.standard.string(forKey: "llm.suppressWarning.langs") ?? ""
+            return Set(raw.split(separator: ",").map { String($0) })
+        }
+        set {
+            UserDefaults.standard.set(newValue.sorted().joined(separator: ","), forKey: "llm.suppressWarning.langs")
+        }
+    }
+
+    @available(iOS 26, *)
+    public func onLanguageDetected(_ bcp47: String) {
+        detectedLanguageBCP47 = bcp47
+        let norm = LLMLanguageSupport.normalize(bcp47)
+        if suppressed.contains(norm) { return }
+
+        switch AppleIntelligenceGate.status(for: bcp47) {
+        case .available:
+            showLanguageBanner = false
+            bannerInfo = nil
+        case .unsupported(let detected, let fallback):
+            bannerInfo = (detected, fallback)
+            showLanguageBanner = true
+        case .notAvailableOnDevice:
+            // You may show a different banner if the framework is missing/disabled
+            bannerInfo = nil
+            showLanguageBanner = false
+        }
+    }
+
+    @available(iOS 26, *)
+    public func suppressWarningsForDetected() {
+        guard let d = detectedLanguageBCP47 else { return }
+        let normalized = LLMLanguageSupport.normalize(d)
+        var s = suppressed
+        s.insert(normalized)
+        suppressed = s
+        showLanguageBanner = false
     }
 }

@@ -22,10 +22,14 @@ public final class ReviewVM {
 
     public var meeting: Meeting?
     public var summary: SummaryResult?
+
     public var isGeneratingSummary = false
     public var isCreatingReminders = false
     public var errorMessage: String?
     public var successMessage: String?
+
+    /// Chosen output locale for summary generation (e.g., "en-us" fallback for unsupported languages)
+    public var chosenOutputLocale: String?
 
     // MARK: - Dependencies
 
@@ -93,7 +97,12 @@ public final class ReviewVM {
                 .map(\.text)
                 .joined(separator: " ")
 
-            summary = try await nlpService.summarize(transcript: transcript)
+            // Check for preferred output locale from user choice during capture
+            let preferredLocale = chosenOutputLocale ?? UserDefaults.standard.string(forKey: "preferred.output.locale")
+
+            // Use standard summarization with built-in retry logic
+            // Pass chosen output locale if user selected fallback
+            summary = try await nlpService.summarize(transcript: transcript, forceOutputLocale: preferredLocale)
 
             // Save to meeting
             let encoder = JSONEncoder()
@@ -163,8 +172,16 @@ public final class ReviewVM {
             throw ExportError.invalidFormat
         }
 
+        // Re-fetch meeting to ensure relationships are loaded
+        guard let freshMeeting = try meetingRepo.fetch(id: meeting.id) else {
+            logger.error("Failed to fetch meeting for export: \(meeting.id)")
+            throw ExportError.invalidFormat
+        }
+
+        logger.debug("Exporting Markdown: \(freshMeeting.transcriptChunks.count) transcript chunks, \(freshMeeting.decisions.count) decisions")
+
         let tempDir = FileManager.default.temporaryDirectory
-        return try MarkdownExporter.export(meeting: meeting, summary: summary, to: tempDir)
+        return try MarkdownExporter.export(meeting: freshMeeting, summary: summary, to: tempDir)
     }
 
     /// Export as JSON
@@ -173,8 +190,16 @@ public final class ReviewVM {
             throw ExportError.invalidFormat
         }
 
+        // Re-fetch meeting to ensure relationships are loaded
+        guard let freshMeeting = try meetingRepo.fetch(id: meeting.id) else {
+            logger.error("Failed to fetch meeting for export: \(meeting.id)")
+            throw ExportError.invalidFormat
+        }
+
+        logger.debug("Exporting JSON: \(freshMeeting.transcriptChunks.count) transcript chunks, \(freshMeeting.decisions.count) decisions")
+
         let tempDir = FileManager.default.temporaryDirectory
-        return try JSONExporter.export(meeting: meeting, summary: summary, to: tempDir)
+        return try JSONExporter.export(meeting: freshMeeting, summary: summary, to: tempDir)
     }
 
     /// Clear messages

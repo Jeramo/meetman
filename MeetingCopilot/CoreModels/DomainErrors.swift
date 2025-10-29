@@ -59,10 +59,10 @@ public enum ASRError: Error, LocalizedError {
 public enum LLMError: Error, LocalizedError {
     case notAvailable
     case badJSON
-    case inferenceFailed(underlying: Error?)
+    case inferenceFailed(underlying: Error)
     case canceled
     case emptyTranscript
-    case promptTooLong
+    case unsupportedLanguage(language: String, supportedLanguages: [String])
 
     public var errorDescription: String? {
         switch self {
@@ -71,16 +71,15 @@ public enum LLMError: Error, LocalizedError {
         case .badJSON:
             return "Invalid JSON response from model"
         case .inferenceFailed(let error):
-            if let error = error {
-                return "Inference failed: \(error.localizedDescription)"
-            }
-            return "Inference failed"
+            return "Inference failed: \(error.localizedDescription)"
         case .canceled:
             return "Operation canceled"
         case .emptyTranscript:
             return "Cannot summarize empty transcript"
-        case .promptTooLong:
-            return "Transcript too long for processing"
+        case .unsupportedLanguage(let lang, let supported):
+            let supportedList = supported.prefix(5).joined(separator: ", ")
+            let more = supported.count > 5 ? " and \(supported.count - 5) more" : ""
+            return "Language '\(lang)' is not yet supported by Apple Intelligence. Supported languages: \(supportedList)\(more). Change your device language to English in Settings → General → Language & Region."
         }
     }
 }

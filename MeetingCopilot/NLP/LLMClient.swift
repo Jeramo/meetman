@@ -48,8 +48,9 @@ public protocol LLMClient: Sendable {
     /// - Parameters:
     ///   - transcript: Full meeting transcript text
     ///   - maxBullets: Maximum number of summary bullets
+    ///   - forceOutputLocale: Optional locale to force for output (e.g., "en-us" fallback for unsupported languages)
     /// - Returns: Structured summary with bullets, decisions, action items
-    func summarize(transcript: String, maxBullets: Int) async throws -> SummaryResult
+    func summarize(transcript: String, maxBullets: Int, forceOutputLocale: String?) async throws -> SummaryResult
 
     /// Refine existing summary with new transcript chunk
     /// - Parameters:
@@ -75,19 +76,20 @@ public enum LLMClientFactory {
 /// High-level NLP service wrapping LLM client
 public final class NLPService: Sendable {
 
-    private let client: LLMClient
+    /// Underlying LLM client (exposed for advanced usage like profanity detection)
+    public let client: LLMClient
 
     public init(client: LLMClient? = nil) {
         self.client = client ?? LLMClientFactory.makeDefault()
     }
 
     /// Summarize transcript text
-    public func summarize(transcript: String) async throws -> SummaryResult {
+    public func summarize(transcript: String, forceOutputLocale: String? = nil) async throws -> SummaryResult {
         guard !transcript.isEmpty else {
             throw LLMError.emptyTranscript
         }
 
-        return try await client.summarize(transcript: transcript, maxBullets: 7)
+        return try await client.summarize(transcript: transcript, maxBullets: 7, forceOutputLocale: forceOutputLocale)
     }
 
     /// Incrementally refine summary with new text

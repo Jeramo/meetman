@@ -31,7 +31,12 @@ public final class AudioRecorder: @unchecked Sendable {
         to fileURL: URL,
         bufferCallback: @escaping AudioBufferCallback
     ) async throws {
-        guard !isRecording else { return }
+        guard !isRecording else {
+            logger.warning("startRecording called but already recording")
+            return
+        }
+
+        logger.info("Starting audio recording to \(fileURL.lastPathComponent)")
 
         // Set flag immediately to prevent race condition
         isRecording = true
@@ -69,9 +74,15 @@ public final class AudioRecorder: @unchecked Sendable {
     }
 
     private func setupEngine() throws {
+        // Ensure engine is stopped and clean
+        if engine.isRunning {
+            engine.stop()
+        }
+
         let inputNode = engine.inputNode
 
         // Remove existing tap if present (safety check)
+        // Note: removeTap doesn't throw if no tap exists
         inputNode.removeTap(onBus: 0)
 
         let inputFormat = inputNode.outputFormat(forBus: 0)
@@ -155,8 +166,14 @@ public final class AudioRecorder: @unchecked Sendable {
 
     /// Stop recording and finalize file
     public func stopRecording() throws {
-        guard isRecording else { return }
+        guard isRecording else {
+            logger.warning("stopRecording called but not recording")
+            return
+        }
 
+        logger.info("Stopping audio engine and removing tap")
+
+        // Remove tap and stop engine
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
 
@@ -164,12 +181,14 @@ public final class AudioRecorder: @unchecked Sendable {
         try wavWriter?.finalize()
         wavWriter = nil
 
+        // Clear state
         isRecording = false
         bufferCallback = nil
+        outputURL = nil
 
         try sessionManager.deactivate()
 
-        logger.info("Recording stopped")
+        logger.info("Recording stopped successfully")
     }
 
     deinit {
