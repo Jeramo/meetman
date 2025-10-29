@@ -19,6 +19,7 @@ actor LanguageModelHub {
     #if canImport(FoundationModels)
     private let model: SystemLanguageModel
     private let session: LanguageModelSession
+    private var isSessionBusy = false
 
     init() {
         // Use permissive guardrails for content transformations (meeting transcripts)
@@ -37,6 +38,15 @@ actor LanguageModelHub {
         timeout: TimeInterval = 15
     ) async throws -> T {
         #if canImport(FoundationModels)
+        // Wait until session is available
+        while isSessionBusy {
+            log.debug("Session busy, waiting...")
+            try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
+        }
+
+        isSessionBusy = true
+        defer { isSessionBusy = false }
+
         do {
             return try await withTimeout(seconds: timeout) { [session] in
                 let opts = GenerationOptions(temperature: temperature)

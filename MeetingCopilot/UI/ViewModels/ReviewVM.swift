@@ -97,12 +97,34 @@ public final class ReviewVM {
                 .map(\.text)
                 .joined(separator: " ")
 
+            // Polish transcript before summarization for better quality (iOS 26+)
+            let polished: PolishedText
+            if #available(iOS 26, *) {
+                do {
+                    logger.info("Polishing transcript with Apple Intelligence...")
+                    polished = try await TextPolisher.beautify(transcript, timeout: 15)
+                    logger.info("Transcript polished: \(polished.edits.count) improvements made")
+
+                    // Store polished version for display
+                    meeting.polishedTranscript = polished.text
+                } catch {
+                    logger.warning("Failed to polish transcript, using original: \(error.localizedDescription)")
+                    // Fallback: use original if polishing fails
+                    polished = PolishedText(text: transcript, edits: [])
+                    meeting.polishedTranscript = nil
+                }
+            } else {
+                // iOS 25 and below: no polishing available
+                polished = PolishedText(text: transcript, edits: [])
+                meeting.polishedTranscript = nil
+            }
+
             // Check for preferred output locale from user choice during capture
             let preferredLocale = chosenOutputLocale ?? UserDefaults.standard.string(forKey: "preferred.output.locale")
 
-            // Use standard summarization with built-in retry logic
+            // Use polished transcript for summarization (better quality)
             // Pass chosen output locale if user selected fallback
-            summary = try await nlpService.summarize(transcript: transcript, forceOutputLocale: preferredLocale)
+            summary = try await nlpService.summarize(transcript: polished.text, forceOutputLocale: preferredLocale)
 
             // Save to meeting
             let encoder = JSONEncoder()

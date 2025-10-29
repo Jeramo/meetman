@@ -37,16 +37,37 @@ struct AudioPlaybackView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
                                     Image(systemName: "sparkles")
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(.accent)
                                     Text("AI-Enhanced Transcript")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .font(.caption.bold())
+                                        .foregroundStyle(.accent)
                                 }
+                                .padding(.bottom, 4)
+
+                                // Show continuous polished transcript
+                                Text(polished)
+                                    .font(.body)
+                                    .padding()
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(Color.green.opacity(0.05))
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                                    )
+
+                                Divider()
+                                    .padding(.vertical, 8)
+
+                                Text("Original Transcript (with timestamps)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
 
                                 ForEach(viewModel.chunks) { chunk in
-                                    PolishedChunkView(
+                                    ChunkView(
                                         chunk: chunk,
-                                        polishedText: viewModel.getPolishedText(for: chunk, from: polished),
                                         isActive: viewModel.activeChunkID == chunk.id,
                                         currentTime: viewModel.currentTime
                                     )
@@ -57,7 +78,7 @@ struct AudioPlaybackView: View {
                                 }
                             }
                         } else {
-                            // Fallback to original chunks
+                            // Fallback to original chunks only
                             ForEach(viewModel.chunks) { chunk in
                                 ChunkView(
                                     chunk: chunk,
@@ -242,43 +263,6 @@ struct ChunkView: View {
     }
 }
 
-// MARK: - Polished Chunk View
-
-struct PolishedChunkView: View {
-    let chunk: TranscriptChunk
-    let polishedText: String
-    let isActive: Bool
-    let currentTime: TimeInterval
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            // Timestamp
-            Text(formatTimestamp(chunk.startTime))
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-
-            // Polished text with highlighting
-            Text(polishedText)
-                .font(.body)
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isActive ? Color.accentColor.opacity(0.2) : Color(.secondarySystemBackground))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(isActive ? Color.accentColor : Color.clear, lineWidth: 2)
-                )
-        }
-    }
-
-    private func formatTimestamp(_ time: TimeInterval) -> String {
-        let minutes = Int(time) / 60
-        let seconds = Int(time) % 60
-        return String(format: "%d:%02d", minutes, seconds)
-    }
-}
 
 // MARK: - Audio Playback View Model
 
@@ -301,16 +285,6 @@ final class AudioPlaybackVM {
     init(meeting: Meeting) {
         self.meeting = meeting
         self.chunks = meeting.transcriptChunks.sorted { $0.startTime < $1.startTime }
-    }
-
-    /// Get polished text segment for a chunk
-    /// For simplicity, we approximate by using the chunk's original text as a reference
-    /// The polished transcript is continuous, so we just show the original chunk's portion
-    func getPolishedText(for chunk: TranscriptChunk, from polishedTranscript: String) -> String {
-        // Simple approach: show the chunk's text from the polished transcript
-        // Since we don't have exact mapping, we use original text as fallback
-        // This ensures timing stays synchronized
-        return chunk.text
     }
 
     func setup() {
