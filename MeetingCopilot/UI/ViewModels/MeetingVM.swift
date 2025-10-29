@@ -384,6 +384,40 @@ public final class MeetingVM {
         logger.info("Meeting capture started: \(meeting.id)")
     }
 
+    /// Start capture in typing mode (for debugging - no microphone/ASR)
+    public func startCaptureTypingMode(title: String?, attendees: [PersonRef] = []) async throws {
+        guard !isRecording else { return }
+
+        logger.info("Starting meeting capture in typing mode (debug)")
+
+        // Create meeting record
+        let meetingTitle = title ?? "Meeting \(Date().formatted(date: .abbreviated, time: .shortened))"
+        meeting = try meetingRepo.create(title: meetingTitle, attendees: attendees)
+
+        guard let meeting = meeting else {
+            throw PersistenceError.saveFailed(underlying: NSError(domain: "MeetingVM", code: -1))
+        }
+
+        // No audio file in typing mode
+        audioURL = nil
+
+        // Update state
+        isRecording = true
+        elapsedTime = 0
+        hasDetectedLanguage = false
+        liveTranscript = ""
+
+        // Start timer
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            Task { @MainActor in
+                self.elapsedTime += 1
+            }
+        }
+
+        logger.info("Meeting capture started in typing mode: \(meeting.id)")
+    }
+
     /// Stop recording
     public func stopCapture() async {
         guard isRecording else {
@@ -397,20 +431,44 @@ public final class MeetingVM {
         timer?.invalidate()
         timer = nil
 
-        // Stop audio recording FIRST to stop buffer flow
-        do {
-            try audioRecorder.stopRecording()
-            logger.info("Audio recorder stopped")
-        } catch {
-            logger.error("Failed to stop recording: \(error.localizedDescription)")
+        // Check if typing mode (no audio URL)
+        let isTypingMode = (audioURL == nil)
+
+        if !isTypingMode {
+            // Normal mode: stop audio and transcription
+            do {
+                try audioRecorder.stopRecording()
+                logger.info("Audio recorder stopped")
+            } catch {
+                logger.error("Failed to stop recording: \(error.localizedDescription)")
+            }
+
+            transcriber.stop()
+            logger.info("Transcriber stopped")
+
+            // Flush assembler
+            await assembler.flush()
+        } else {
+            // Typing mode: save the typed transcript as a single chunk
+            logger.info("Stopping typing mode - saving typed transcript")
+            if let meeting = meeting, !liveTranscript.isEmpty {
+                let chunk = TranscriptChunk(
+                    meetingID: meeting.id,
+                    index: 0,
+                    text: liveTranscript,
+                    startTime: 0,
+                    endTime: elapsedTime,
+                    isFinal: true
+                )
+                do {
+                    try transcriptRepo.add(chunk)
+                    meeting.transcriptChunks.append(chunk)
+                    logger.info("Saved typed transcript as single chunk")
+                } catch {
+                    logger.error("Failed to save typed transcript: \(error.localizedDescription)")
+                }
+            }
         }
-
-        // Then stop transcription (no more buffers will arrive)
-        transcriber.stop()
-        logger.info("Transcriber stopped")
-
-        // Flush assembler
-        await assembler.flush()
 
         // Wait for final chunk to be saved (it's emitted in an async Task)
         // This ensures the chunk is persisted before we schedule background work

@@ -55,8 +55,12 @@ struct CaptureView: View {
     @State private var viewModel = MeetingVM()
     @State private var showingDecisionSheet = false
     @State private var showingLanguagePicker = false
+    @State private var showingInputModeDialog = false
     @State private var decisionText = ""
     @State private var meetingTitle = ""
+    @State private var completedMeeting: Meeting?
+    @State private var isTypingMode = false
+    @State private var manualTranscript = ""
 
     @Environment(\.dismiss) private var dismiss
 
@@ -84,11 +88,27 @@ struct CaptureView: View {
         }
         .navigationTitle("Meeting Capture")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(item: $completedMeeting) { meeting in
+            ReviewView(meeting: meeting, autoGenerateSummary: true)
+        }
         .sheet(isPresented: $showingDecisionSheet) {
             decisionSheet
         }
         .sheet(isPresented: $showingLanguagePicker) {
             languagePickerSheet
+        }
+        .confirmationDialog("Input Mode", isPresented: $showingInputModeDialog, titleVisibility: .visible) {
+            Button("Speak (Microphone)") {
+                isTypingMode = false
+                startRecording()
+            }
+            Button("Type (Debug Mode)") {
+                isTypingMode = true
+                startRecording()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Choose how you want to provide input for this meeting")
         }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
@@ -97,6 +117,16 @@ struct CaptureView: View {
         } message: {
             if let error = viewModel.errorMessage {
                 Text(error)
+            }
+        }
+        .onAppear {
+            // Reset navigation state when returning to capture view
+            completedMeeting = nil
+            // Reset state for next recording
+            if !viewModel.isRecording {
+                meetingTitle = ""
+                isTypingMode = false
+                manualTranscript = ""
             }
         }
     }
@@ -148,13 +178,8 @@ struct CaptureView: View {
 
             // Start button
             Button {
-                Task {
-                    do {
-                        try await viewModel.startCapture(title: meetingTitle.isEmpty ? nil : meetingTitle)
-                    } catch {
-                        viewModel.errorMessage = error.localizedDescription
-                    }
-                }
+                // Show input mode dialog
+                showingInputModeDialog = true
             } label: {
                 Label("Start Recording", systemImage: "record.circle.fill")
                     .font(.headline)
@@ -214,24 +239,41 @@ struct CaptureView: View {
 
             Spacer()
 
-            // Live transcript ticker
+            // Live transcript ticker or manual input
             VStack(alignment: .leading, spacing: 8) {
-                Label("Live Transcript", systemImage: "waveform")
+                Label(isTypingMode ? "Type Transcript (Debug)" : "Live Transcript", systemImage: isTypingMode ? "keyboard" : "waveform")
                     .font(.caption.bold())
                     .foregroundStyle(.secondary)
 
-                ScrollView {
-                    Text(viewModel.liveTranscript.isEmpty ? "Listening..." : viewModel.liveTranscript)
+                if isTypingMode {
+                    // Manual text input for debugging
+                    TextEditor(text: $manualTranscript)
                         .font(.body)
-                        .foregroundStyle(.primary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding()
+                        .padding(8)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
                                 .fill(Color(.systemBackground))
                         )
+                        .frame(height: 120)
+                        .onChange(of: manualTranscript) { oldValue, newValue in
+                            // Update live transcript as user types
+                            viewModel.liveTranscript = newValue
+                        }
+                } else {
+                    // Live transcript from microphone
+                    ScrollView {
+                        Text(viewModel.liveTranscript.isEmpty ? "Listening..." : viewModel.liveTranscript)
+                            .font(.body)
+                            .foregroundStyle(.primary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color(.systemBackground))
+                            )
+                    }
+                    .frame(height: 120)
                 }
-                .frame(height: 120)
             }
 
             Spacer()
@@ -256,7 +298,8 @@ struct CaptureView: View {
                 Button {
                     Task {
                         await viewModel.stopCapture()
-                        dismiss()
+                        // Navigate to review screen with the completed meeting
+                        completedMeeting = viewModel.meeting
                     }
                 } label: {
                     Label("Stop", systemImage: "stop.fill")
@@ -365,6 +408,24 @@ struct CaptureView: View {
             }
         }
         .presentationDetents([.medium, .large])
+    }
+
+    // MARK: - Helper Functions
+
+    private func startRecording() {
+        Task {
+            do {
+                if isTypingMode {
+                    // Start in typing mode - create meeting but skip audio/ASR
+                    try await viewModel.startCaptureTypingMode(title: meetingTitle.isEmpty ? nil : meetingTitle)
+                } else {
+                    // Normal microphone mode
+                    try await viewModel.startCapture(title: meetingTitle.isEmpty ? nil : meetingTitle)
+                }
+            } catch {
+                viewModel.errorMessage = error.localizedDescription
+            }
+        }
     }
 }
 

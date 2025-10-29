@@ -15,8 +15,11 @@ struct ReviewView: View {
     @State private var showingShareSheet = false
     @State private var exportURL: URL?
 
-    init(meeting: Meeting) {
+    private let autoGenerateSummary: Bool
+
+    init(meeting: Meeting, autoGenerateSummary: Bool = false) {
         _viewModel = State(initialValue: ReviewVM(meeting: meeting))
+        self.autoGenerateSummary = autoGenerateSummary
     }
 
     var body: some View {
@@ -67,6 +70,14 @@ struct ReviewView: View {
         } message: {
             if let success = viewModel.successMessage {
                 Text(success)
+            }
+        }
+        .onAppear {
+            // Auto-generate summary if requested and not already present
+            if autoGenerateSummary && viewModel.summary == nil {
+                Task {
+                    await viewModel.generateSummary()
+                }
             }
         }
     }
