@@ -166,13 +166,13 @@ struct CaptureView: View {
             // Microphone icon
             Image(systemName: "mic.circle.fill")
                 .font(.system(size: 80))
-                .foregroundStyle(viewModel.isAIAvailable ? .tint : .secondary)
+                .foregroundStyle(viewModel.isAIAvailable ? Color.accentColor : Color.secondary)
                 .symbolEffect(.pulse)
                 .opacity(viewModel.isAIAvailable ? 1.0 : 0.5)
 
             Text(viewModel.isAIAvailable ? "Ready to Record" : "Not Available")
                 .font(.title2.bold())
-                .foregroundStyle(viewModel.isAIAvailable ? .primary : .secondary)
+                .foregroundStyle(viewModel.isAIAvailable ? Color.primary : Color.secondary)
 
             // Title input
             TextField("Meeting Title (optional)", text: $meetingTitle)
