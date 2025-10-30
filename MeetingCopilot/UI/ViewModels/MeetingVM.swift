@@ -279,6 +279,10 @@ public final class MeetingVM {
     public var liveTranscript: String = ""
     public var errorMessage: String?
 
+    // Apple Intelligence availability state
+    public var aiAvailabilityError: String?
+    public var isAIAvailable: Bool = false
+
     // Language support state
     public var detectedLanguageBCP47: String?
     public var showLanguageBanner: Bool = false
@@ -316,9 +320,52 @@ public final class MeetingVM {
 
     // MARK: - Actions
 
+    /// Check Apple Intelligence availability
+    public func checkAIAvailability() {
+        #if canImport(FoundationModels)
+        if #available(iOS 26, *) {
+            let model = SystemLanguageModel.default
+            switch model.availability {
+            case .available:
+                isAIAvailable = true
+                aiAvailabilityError = nil
+                logger.info("Apple Intelligence is available")
+            case .unavailable(let reason):
+                isAIAvailable = false
+                switch reason {
+                case .modelNotReady:
+                    aiAvailabilityError = "Apple Intelligence models are still downloading. Please wait a few minutes before starting a recording."
+                case .appleIntelligenceNotEnabled:
+                    aiAvailabilityError = "Apple Intelligence is not enabled. Enable it in Settings → Apple Intelligence & Siri to use meeting summarization."
+                case .deviceNotEligible:
+                    aiAvailabilityError = "This device is not eligible for Apple Intelligence. Requires iPhone 15 Pro or later, iPad with M1 or later, or Mac with Apple Silicon."
+                @unknown default:
+                    aiAvailabilityError = "Apple Intelligence is not available on this device."
+                }
+                logger.warning("Apple Intelligence unavailable: \(String(describing: reason))")
+            }
+        } else {
+            isAIAvailable = false
+            aiAvailabilityError = "Apple Intelligence requires iOS 26 or later."
+            logger.warning("iOS 26+ required for Apple Intelligence")
+        }
+        #else
+        isAIAvailable = false
+        aiAvailabilityError = "Apple Intelligence requires iOS 26 or later."
+        logger.warning("FoundationModels framework not available")
+        #endif
+    }
+
     /// Start recording new meeting
     public func startCapture(title: String?, attendees: [PersonRef] = []) async throws {
         guard !isRecording else { return }
+
+        // Check Apple Intelligence availability before starting
+        checkAIAvailability()
+        guard isAIAvailable else {
+            logger.error("Cannot start capture: Apple Intelligence unavailable")
+            throw LLMError.notAvailable
+        }
 
         logger.info("Starting meeting capture")
 
@@ -388,6 +435,13 @@ public final class MeetingVM {
     /// Start capture in typing mode (for debugging - no microphone/ASR)
     public func startCaptureTypingMode(title: String?, attendees: [PersonRef] = []) async throws {
         guard !isRecording else { return }
+
+        // Check Apple Intelligence availability before starting
+        checkAIAvailability()
+        guard isAIAvailable else {
+            logger.error("Cannot start capture: Apple Intelligence unavailable")
+            throw LLMError.notAvailable
+        }
 
         logger.info("Starting meeting capture in typing mode (debug)")
 

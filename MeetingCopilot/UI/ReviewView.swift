@@ -35,6 +35,11 @@ struct ReviewView: View {
                     if meeting.audioURL != nil {
                         audioPlaybackButton
                     }
+
+                    // Speaker diarization button
+                    if meeting.audioURL != nil {
+                        diarizationButton(meeting)
+                    }
                 }
 
                 // Summary section
@@ -65,7 +70,10 @@ struct ReviewView: View {
                 ShareSheet(items: [url])
             }
         }
-        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+        .alert("Error", isPresented: Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { if !$0 { viewModel.clearMessages() } }
+        )) {
             Button("OK") {
                 viewModel.clearMessages()
             }
@@ -74,7 +82,10 @@ struct ReviewView: View {
                 Text(error)
             }
         }
-        .alert("Success", isPresented: .constant(viewModel.successMessage != nil)) {
+        .alert("Success", isPresented: Binding(
+            get: { viewModel.successMessage != nil },
+            set: { if !$0 { viewModel.clearMessages() } }
+        )) {
             Button("OK") {
                 viewModel.clearMessages()
             }
@@ -147,6 +158,65 @@ struct ReviewView: View {
             )
         }
         .foregroundStyle(.primary)
+    }
+
+    private func diarizationButton(_ meeting: Meeting) -> some View {
+        let hasSpeakers = meeting.transcriptChunks.contains { $0.speakerID != nil }
+
+        return VStack(spacing: 8) {
+            Button {
+                Task {
+                    await viewModel.performDiarization()
+                }
+            } label: {
+                HStack {
+                    if viewModel.isDiarizing {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                    } else {
+                        Image(systemName: hasSpeakers ? "person.2.badge.gearshape.fill" : "person.2.wave.2")
+                            .font(.title2)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(hasSpeakers ? "Re-identify Speakers" : "Identify Speakers")
+                            .font(.headline)
+                        if hasSpeakers {
+                            Text("Speakers already identified")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Spacer()
+
+                    if !viewModel.isDiarizing {
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                    }
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(hasSpeakers ? Color.green.opacity(0.1) : Color.blue.opacity(0.1))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(hasSpeakers ? Color.green : Color.blue, lineWidth: 1)
+                )
+            }
+            .foregroundStyle(.primary)
+            .disabled(viewModel.isDiarizing)
+
+            if viewModel.isDiarizing {
+                VStack(spacing: 4) {
+                    ProgressView(value: viewModel.diarizationProgress)
+                    Text(viewModel.diarizationStatus)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
     }
 
     private var generateSummaryPrompt: some View {

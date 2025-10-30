@@ -36,6 +36,24 @@ actor LanguageModelHub {
         timeout: TimeInterval = 15
     ) async throws -> T {
         #if canImport(FoundationModels)
+        // Check model availability before attempting to use it
+        switch model.availability {
+        case .available:
+            log.debug("Model available, proceeding with generation")
+        case .unavailable(let reason):
+            log.error("Model unavailable: \(String(describing: reason))")
+            switch reason {
+            case .modelNotReady:
+                throw LLMError.modelNotReady
+            case .appleIntelligenceNotEnabled:
+                throw LLMError.appleIntelligenceNotEnabled
+            case .deviceNotEligible:
+                throw LLMError.deviceNotEligible
+            @unknown default:
+                throw LLMError.notAvailable
+            }
+        }
+
         // Wait until session is available
         while isSessionBusy {
             log.debug("Session busy, waiting...")

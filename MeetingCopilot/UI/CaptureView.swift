@@ -110,7 +110,10 @@ struct CaptureView: View {
         } message: {
             Text("Choose how you want to provide input for this meeting")
         }
-        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+        .alert("Error", isPresented: Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { if !$0 { viewModel.errorMessage = nil } }
+        )) {
             Button("OK") {
                 viewModel.errorMessage = nil
             }
@@ -120,6 +123,9 @@ struct CaptureView: View {
             }
         }
         .onAppear {
+            // Check Apple Intelligence availability when view appears
+            viewModel.checkAIAvailability()
+
             // Reset navigation state when returning to capture view
             completedMeeting = nil
             // Reset state for next recording
@@ -137,19 +143,42 @@ struct CaptureView: View {
         VStack(spacing: 24) {
             Spacer()
 
+            // Apple Intelligence availability warning (if not available)
+            if !viewModel.isAIAvailable, let errorMsg = viewModel.aiAvailabilityError {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                        Text("Apple Intelligence Required")
+                            .font(.headline)
+                    }
+                    Text(errorMsg)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12)
+                .background(.orange.opacity(0.15), in: RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(.orange.opacity(0.35)))
+                .padding(.horizontal)
+            }
+
             // Microphone icon
             Image(systemName: "mic.circle.fill")
                 .font(.system(size: 80))
-                .foregroundStyle(.tint)
+                .foregroundStyle(viewModel.isAIAvailable ? .tint : .secondary)
                 .symbolEffect(.pulse)
+                .opacity(viewModel.isAIAvailable ? 1.0 : 0.5)
 
-            Text("Ready to Record")
+            Text(viewModel.isAIAvailable ? "Ready to Record" : "Not Available")
                 .font(.title2.bold())
+                .foregroundStyle(viewModel.isAIAvailable ? .primary : .secondary)
 
             // Title input
             TextField("Meeting Title (optional)", text: $meetingTitle)
                 .textFieldStyle(.roundedBorder)
                 .padding(.horizontal)
+                .disabled(!viewModel.isAIAvailable)
 
             // Language selector
             Button {
@@ -157,7 +186,7 @@ struct CaptureView: View {
             } label: {
                 HStack {
                     Image(systemName: "globe")
-                    Text(viewModel.userOverrideLocale?.displayName ?? "Auto (English)")
+                    Text(viewModel.userOverrideLocale?.displayName ?? LanguagePolicy.initialASRLocale().displayName)
                     Spacer()
                     Image(systemName: "chevron.right")
                         .font(.caption)
@@ -168,8 +197,9 @@ struct CaptureView: View {
             }
             .foregroundStyle(.primary)
             .padding(.horizontal)
+            .disabled(!viewModel.isAIAvailable)
 
-            Text("Audio stays on this device. Tap to begin.")
+            Text(viewModel.isAIAvailable ? "Audio stays on this device. Tap to begin." : "Enable Apple Intelligence to start recording.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -186,10 +216,11 @@ struct CaptureView: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.accentColor)
+                    .background(viewModel.isAIAvailable ? Color.accentColor : Color.gray)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
             .padding(.horizontal)
+            .disabled(!viewModel.isAIAvailable)
         }
     }
 
@@ -381,27 +412,6 @@ struct CaptureView: View {
         NavigationStack {
             List {
                 Section {
-                    Button {
-                        viewModel.userOverrideLocale = nil
-                        showingLanguagePicker = false
-                    } label: {
-                        HStack {
-                            Text("Auto (English)")
-                            Spacer()
-                            if viewModel.userOverrideLocale == nil {
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(.blue)
-                            }
-                        }
-                    }
-                    .foregroundStyle(.primary)
-                } header: {
-                    Text("Default")
-                } footer: {
-                    Text("Automatically detects language and switches to English if needed.")
-                }
-
-                Section("All Languages") {
                     ForEach(ASRLocale.allCases, id: \.self) { locale in
                         Button {
                             viewModel.userOverrideLocale = locale
@@ -410,7 +420,10 @@ struct CaptureView: View {
                             HStack {
                                 Text(locale.displayName)
                                 Spacer()
-                                if viewModel.userOverrideLocale == locale {
+                                // Show checkmark if explicitly selected, or if it matches device language when nothing is selected
+                                let isSelected = viewModel.userOverrideLocale == locale ||
+                                                (viewModel.userOverrideLocale == nil && locale == LanguagePolicy.initialASRLocale())
+                                if isSelected {
                                     Image(systemName: "checkmark")
                                         .foregroundStyle(.blue)
                                 }
@@ -418,6 +431,10 @@ struct CaptureView: View {
                         }
                         .foregroundStyle(.primary)
                     }
+                } header: {
+                    Text("Select Language")
+                } footer: {
+                    Text("Choose the language you'll be speaking during the meeting.")
                 }
             }
             .navigationTitle("Transcription Language")

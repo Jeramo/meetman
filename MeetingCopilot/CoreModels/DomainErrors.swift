@@ -62,7 +62,11 @@ public enum LLMError: Error, LocalizedError {
     case inferenceFailed(underlying: Error)
     case canceled
     case emptyTranscript
+    case transcriptTooShort(characters: Int, minimum: Int)
     case unsupportedLanguage(language: String, supportedLanguages: [String])
+    case modelNotReady
+    case appleIntelligenceNotEnabled
+    case deviceNotEligible
 
     public var errorDescription: String? {
         switch self {
@@ -76,10 +80,18 @@ public enum LLMError: Error, LocalizedError {
             return "Operation canceled"
         case .emptyTranscript:
             return "Cannot summarize empty transcript"
+        case .transcriptTooShort(let chars, let minimum):
+            return "Recording too short to generate summary. Need at least \(minimum) characters (~1 minute), got \(chars) characters."
         case .unsupportedLanguage(let lang, let supported):
             let supportedList = supported.prefix(5).joined(separator: ", ")
             let more = supported.count > 5 ? " and \(supported.count - 5) more" : ""
             return "Language '\(lang)' is not yet supported by Apple Intelligence. Supported languages: \(supportedList)\(more). Change your device language to English in Settings → General → Language & Region."
+        case .modelNotReady:
+            return "Apple Intelligence models are still downloading. Please wait a few minutes and try again. Check download progress in Settings → Apple Intelligence & Siri."
+        case .appleIntelligenceNotEnabled:
+            return "Apple Intelligence is not enabled on this device. Enable it in Settings → Apple Intelligence & Siri."
+        case .deviceNotEligible:
+            return "This device is not eligible for Apple Intelligence. Apple Intelligence requires iPhone 15 Pro or later, iPad with M1 or later, or Mac with Apple Silicon."
         }
     }
 }

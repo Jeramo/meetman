@@ -205,10 +205,22 @@ struct ChunkView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            // Timestamp
-            Text(formatTimestamp(chunk.startTime))
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+            // Speaker label and timestamp
+            HStack(spacing: 8) {
+                if let speakerID = chunk.speakerID {
+                    Text(speakerID)
+                        .font(.caption.bold())
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(speakerColor(for: speakerID))
+                        .clipShape(Capsule())
+                }
+
+                Text(formatTimestamp(chunk.startTime))
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
 
             // Text with word-by-word highlighting (use polished if available)
             let displayText = (usePolished && chunk.polishedText != nil) ? chunk.polishedText! : chunk.text
@@ -227,6 +239,13 @@ struct ChunkView: View {
                         .stroke(isActive ? Color.accentColor : (isPolished ? Color.green.opacity(0.3) : Color.clear), lineWidth: isActive ? 2 : 1)
                 )
         }
+    }
+
+    private func speakerColor(for speakerID: String) -> Color {
+        // Generate consistent colors for different speakers
+        let colors: [Color] = [.blue, .purple, .orange, .pink, .indigo, .teal]
+        let hash = abs(speakerID.hashValue)
+        return colors[hash % colors.count]
     }
 
     private func formatTimestamp(_ time: TimeInterval) -> String {

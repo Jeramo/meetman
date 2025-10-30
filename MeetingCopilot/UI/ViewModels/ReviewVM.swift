@@ -25,6 +25,9 @@ public final class ReviewVM {
 
     public var isGeneratingSummary = false
     public var isCreatingReminders = false
+    public var isDiarizing = false
+    public var diarizationProgress: Double = 0
+    public var diarizationStatus: String = ""
     public var errorMessage: String?
     public var successMessage: String?
 
@@ -126,8 +129,26 @@ public final class ReviewVM {
             let preferredLocale = chosenOutputLocale ?? UserDefaults.standard.string(forKey: "preferred.output.locale")
 
             // Use polished transcript for summarization (better quality)
-            // Pass chosen output locale if user selected fallback
-            let transcriptForSummary = polishedChunks.joined(separator: " ")
+            // If speaker diarization has been performed, include speaker labels
+            let hasSpeakers = nonEmptyChunks.contains { $0.speakerID != nil }
+            let transcriptForSummary: String
+
+            if hasSpeakers {
+                // Format with speaker labels: "S1: text\nS2: text\n..."
+                transcriptForSummary = zip(nonEmptyChunks, polishedChunks)
+                    .map { chunk, polishedText in
+                        if let speakerID = chunk.speakerID {
+                            return "\(speakerID): \(polishedText)"
+                        } else {
+                            return polishedText
+                        }
+                    }
+                    .joined(separator: "\n")
+                logger.info("Using speaker-tagged transcript for summary")
+            } else {
+                transcriptForSummary = polishedChunks.joined(separator: " ")
+            }
+
             summary = try await nlpService.summarize(transcript: transcriptForSummary, forceOutputLocale: preferredLocale)
 
             // Save to meeting
@@ -143,6 +164,42 @@ public final class ReviewVM {
         }
 
         isGeneratingSummary = false
+    }
+
+    /// Perform speaker diarization on meeting audio
+    public func performDiarization() async {
+        guard let meeting = meeting else { return }
+
+        isDiarizing = true
+        errorMessage = nil
+        diarizationProgress = 0
+        diarizationStatus = "Starting..."
+
+        do {
+            logger.info("Starting diarization for meeting \(meeting.id)")
+
+            // Create service with explicit nonisolated context
+            let service = DiarizationService(
+                embedderURL: nil, // nil = heuristic fallback
+                context: context
+            )
+
+            // Use @Sendable closure to satisfy concurrency requirements
+            _ = try await service.diarize(meeting: meeting) { @Sendable progress, status in
+                Task { @MainActor in
+                    self.diarizationProgress = progress
+                    self.diarizationStatus = status
+                }
+            }
+
+            successMessage = "Speaker identification complete"
+            logger.info("Diarization complete")
+        } catch {
+            logger.error("Failed to perform diarization: \(error.localizedDescription)")
+            errorMessage = "Failed to identify speakers: \(error.localizedDescription)"
+        }
+
+        isDiarizing = false
     }
 
     /// Refine summary with latest chunks

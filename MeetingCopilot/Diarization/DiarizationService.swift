@@ -40,7 +40,7 @@ public final class DiarizationService: @unchecked Sendable {
     @discardableResult
     public func diarize(
         meeting: Meeting,
-        progressHandler: ((Double, String) -> Void)? = nil
+        progressHandler: (@Sendable (Double, String) -> Void)? = nil
     ) async throws -> [SpeakerTurn] {
         logger.info("Starting diarization for meeting \(meeting.id)")
 
