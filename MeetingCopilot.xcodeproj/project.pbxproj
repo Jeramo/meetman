@@ -46,6 +46,14 @@
 		AA0033 /* CaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0033 /* CaptureView.swift */; };
 		AA0034 /* ReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0034 /* ReviewView.swift */; };
 		AA0035 /* AudioPlaybackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0035 /* AudioPlaybackView.swift */; };
+		AA0036 /* VAD.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0036 /* VAD.swift */; };
+		AA0037 /* SpeakerEmbedding.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0037 /* SpeakerEmbedding.swift */; };
+		AA0038 /* Clustering.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0038 /* Clustering.swift */; };
+		AA0039 /* Diarizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0039 /* Diarizer.swift */; };
+		AA0040 /* Alignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0040 /* Alignment.swift */; };
+		AA0041 /* DiarizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0041 /* DiarizationService.swift */; };
+		AA0015D /* PromptLibrary+SpeakerAware.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0015D /* PromptLibrary+SpeakerAware.swift */; };
+
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -90,6 +98,14 @@
 		BB0033 /* CaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CaptureView.swift; path = MeetingCopilot/UI/CaptureView.swift; sourceTree = "<group>"; };
 		BB0034 /* ReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ReviewView.swift; path = MeetingCopilot/UI/ReviewView.swift; sourceTree = "<group>"; };
 		BB0035 /* AudioPlaybackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AudioPlaybackView.swift; path = MeetingCopilot/UI/AudioPlaybackView.swift; sourceTree = "<group>"; };
+		BB0036 /* VAD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VAD.swift; path = MeetingCopilot/Diarization/VAD.swift; sourceTree = "<group>"; };
+		BB0037 /* SpeakerEmbedding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SpeakerEmbedding.swift; path = MeetingCopilot/Diarization/SpeakerEmbedding.swift; sourceTree = "<group>"; };
+		BB0038 /* Clustering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Clustering.swift; path = MeetingCopilot/Diarization/Clustering.swift; sourceTree = "<group>"; };
+		BB0039 /* Diarizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Diarizer.swift; path = MeetingCopilot/Diarization/Diarizer.swift; sourceTree = "<group>"; };
+		BB0040 /* Alignment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Alignment.swift; path = MeetingCopilot/Diarization/Alignment.swift; sourceTree = "<group>"; };
+		BB0041 /* DiarizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DiarizationService.swift; path = MeetingCopilot/Diarization/DiarizationService.swift; sourceTree = "<group>"; };
+		BB0042 /* DiarizationIntegrationExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DiarizationIntegrationExample.swift; path = MeetingCopilot/Diarization/DiarizationIntegrationExample.swift; sourceTree = "<group>"; };
+		BB0015D /* PromptLibrary+SpeakerAware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "PromptLibrary+SpeakerAware.swift"; path = "MeetingCopilot/NLP/PromptLibrary+SpeakerAware.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -152,6 +168,7 @@
 				BB0015A /* DetectedLanguage.swift */,
 				BB0015B /* PolishedText.swift */,
 				BB0015C /* TextPolisher.swift */,
+				BB0015D /* PromptLibrary+SpeakerAware.swift */,
 			);
 			name = NLP;
 			sourceTree = "<group>";
@@ -193,6 +210,20 @@
 				BB0026 /* BackgroundTasks.swift */,
 			);
 			name = Background;
+			sourceTree = "<group>";
+		};
+		GROUP013 /* Diarization */ = {
+			isa = PBXGroup;
+			children = (
+				BB0036 /* VAD.swift */,
+				BB0037 /* SpeakerEmbedding.swift */,
+				BB0038 /* Clustering.swift */,
+				BB0039 /* Diarizer.swift */,
+				BB0040 /* Alignment.swift */,
+				BB0041 /* DiarizationService.swift */,
+				BB0042 /* DiarizationIntegrationExample.swift */,
+			);
+			name = Diarization;
 			sourceTree = "<group>";
 		};
 		GROUP010 /* UI */ = {
@@ -245,6 +276,7 @@
 				GROUP002 /* CoreModels */,
 				GROUP003 /* Audio */,
 				GROUP004 /* ASR */,
+				GROUP013 /* Diarization */,
 				GROUP005 /* NLP */,
 				GROUP006 /* Actions */,
 				GROUP007 /* Persistence */,
@@ -364,6 +396,13 @@
 				AA0033 /* CaptureView.swift in Sources */,
 				AA0034 /* ReviewView.swift in Sources */,
 				AA0035 /* AudioPlaybackView.swift in Sources */,
+				AA0036 /* VAD.swift in Sources */,
+				AA0037 /* SpeakerEmbedding.swift in Sources */,
+				AA0038 /* Clustering.swift in Sources */,
+				AA0039 /* Diarizer.swift in Sources */,
+				AA0040 /* Alignment.swift in Sources */,
+				AA0041 /* DiarizationService.swift in Sources */,
+				AA0015D /* PromptLibrary+SpeakerAware.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

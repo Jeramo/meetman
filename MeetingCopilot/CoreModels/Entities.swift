@@ -83,6 +83,7 @@ public final class TranscriptChunk {
     public var index: Int
     public var text: String
     public var polishedText: String? // AI-polished version (iOS 26+)
+    public var speakerID: String? // Speaker label from diarization (e.g., "S1", "S2")
     public var startTime: TimeInterval
     public var endTime: TimeInterval
     public var isFinal: Bool
@@ -94,6 +95,7 @@ public final class TranscriptChunk {
         index: Int,
         text: String,
         polishedText: String? = nil,
+        speakerID: String? = nil,
         startTime: TimeInterval,
         endTime: TimeInterval,
         isFinal: Bool = true,
@@ -104,6 +106,7 @@ public final class TranscriptChunk {
         self.index = index
         self.text = text
         self.polishedText = polishedText
+        self.speakerID = speakerID
         self.startTime = startTime
         self.endTime = endTime
         self.isFinal = isFinal
@@ -174,16 +177,18 @@ public struct TranscriptChunkData: Sendable {
     public let index: Int
     public let text: String
     public let polishedText: String?
+    public let speakerID: String?
     public let startTime: TimeInterval
     public let endTime: TimeInterval
     public let isFinal: Bool
 
-    public init(id: UUID = UUID(), meetingID: UUID, index: Int, text: String, polishedText: String? = nil, startTime: TimeInterval, endTime: TimeInterval, isFinal: Bool) {
+    public init(id: UUID = UUID(), meetingID: UUID, index: Int, text: String, polishedText: String? = nil, speakerID: String? = nil, startTime: TimeInterval, endTime: TimeInterval, isFinal: Bool) {
         self.id = id
         self.meetingID = meetingID
         self.index = index
         self.text = text
         self.polishedText = polishedText
+        self.speakerID = speakerID
         self.startTime = startTime
         self.endTime = endTime
         self.isFinal = isFinal
@@ -191,13 +196,13 @@ public struct TranscriptChunkData: Sendable {
 
     /// Convert to SwiftData model
     public func toModel() -> TranscriptChunk {
-        TranscriptChunk(id: id, meetingID: meetingID, index: index, text: text, polishedText: polishedText, startTime: startTime, endTime: endTime, isFinal: isFinal)
+        TranscriptChunk(id: id, meetingID: meetingID, index: index, text: text, polishedText: polishedText, speakerID: speakerID, startTime: startTime, endTime: endTime, isFinal: isFinal)
     }
 }
 
 extension TranscriptChunk {
     /// Convert to Sendable DTO
     public func toData() -> TranscriptChunkData {
-        TranscriptChunkData(id: id, meetingID: meetingID, index: index, text: text, polishedText: polishedText, startTime: startTime, endTime: endTime, isFinal: isFinal)
+        TranscriptChunkData(id: id, meetingID: meetingID, index: index, text: text, polishedText: polishedText, speakerID: speakerID, startTime: startTime, endTime: endTime, isFinal: isFinal)
     }
 }
